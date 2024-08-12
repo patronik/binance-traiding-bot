@@ -1,0 +1,42 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 50px;
+}
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.container input, .container button {
+    margin: 5px;
+}
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    width: auto; /* Adjusted button width */
+}
+input {
+    padding: 10px;
+    font-size: 16px;
+}
+.info {
+    margin-top: 20px;
+    font-size: 18px;
+}
+.status {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+}
+.calculated {
+    margin-top: 10px;
+    font-size: 16px;
+}
+.button-group {
+    margin-bottom: 20px;
+}
+.button-group button {
+    display: inline-block;
+}

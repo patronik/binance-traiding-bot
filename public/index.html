@@ -4,50 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Binance Trading Bot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
-        .container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .container input, .container button {
-            margin: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            width: auto; /* Adjusted button width */
-        }
-        input {
-            padding: 10px;
-            font-size: 16px;
-        }
-        .info {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-        .status {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .calculated {
-            margin-top: 10px;
-            font-size: 16px;
-        }
-        .button-group {
-            margin-bottom: 20px;
-        }
-        .button-group button {
-            display: inline-block;
-        }
-    </style>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="editor.css">
+
+    <!-- Include Ace Editor from CDN -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ace.js"></script>
+    <script type="text/javascript" src="editor.js" defer></script>
 </head>
 <body>
 <h1>Binance Trading Bot</h1>
@@ -70,6 +32,22 @@
 
 <div class="button-group">
     <button id="clearFieldsBtn">Clear All Fields</button>
+</div>
+
+<div class="button-group">
+    <div id="editor">
+        /**
+            Variables available:
+            let currentBtcPrice;
+            let currentBtcBalance;
+            let currentUsdtBalance;
+        **/
+    </div>
+
+    <div>
+        <input type="checkbox" id="executeCheckbox" >
+        <label for="executeCheckbox">Callback execution enabled</label>
+    </div>
 </div>
 
 <div class="container">
@@ -113,6 +91,7 @@
   let lowPriceThreshold = null;
   let currentBtcPrice = 0;
   let currentBtcBalance = 0;
+  let currentUsdtBalance = 0;
 
   // Function to format numbers as US currency
   function formatCurrency(value) {
@@ -158,7 +137,8 @@
 
       const usdtBalanceResponse = await fetch('/balance/usdt');
       const usdtBalanceData = await usdtBalanceResponse.json();
-      usdtBalanceEl.innerText = formatCurrency(usdtBalanceData.usdtBalance);
+      currentUsdtBalance = usdtBalanceData.usdtBalance;
+      usdtBalanceEl.innerText = formatCurrency(currentUsdtBalance);
 
       const btcBalanceResponse = await fetch('/balance/btc');
       const btcBalanceData = await btcBalanceResponse.json();
@@ -168,6 +148,7 @@
       // Update the calculated amounts based on the current BTC price
       updateCalculatedAmounts();
 
+      runCallback();
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -219,9 +200,6 @@
     }
   }
 
-  // Set interval to update the information every second
-  setInterval(updateInfo, 1000);
-
   // Function to set a cookie
   function setCookie(name, value, days) {
     let expires = "";
@@ -263,6 +241,9 @@
 
     updateNotificationStatus();
   }
+
+  // Set interval to update the information every second
+  setInterval(updateInfo, 1000);
 
   // Event listener for Buy BTC button
   buySpecificBtn.addEventListener('click', async () => {
