@@ -75,6 +75,9 @@ Open your web browser and go to `http://localhost:3000` to access the trading bo
    2. Click the "Sell BTC" button.
    3. A confirmation dialog will appear. Confirm the transaction to proceed.
 
+- **Custom code executing**:
+  1. Add custom code in code editor that will be executed after each BTC price update.
+
 ### Notifications
 - **Set High/Low Price Notification**:
    1. Enter the desired BTC price threshold in the "High Price Notification" or "Low Price Notification" input field.
