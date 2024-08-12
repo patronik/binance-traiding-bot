@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binance Trading Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .container input, .container button {
+            margin: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            width: auto; /* Adjusted button width */
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+        }
+        .info {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .calculated {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .button-group {
+            margin-bottom: 20px;
+        }
+        .button-group button {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<h1>Binance Trading Bot</h1>
+
+<div class="container">
+    <input type="number" id="buyAmount" placeholder="Amount to Buy (BTC)" step="0.000001">
+    <button id="buySpecificBtn">Buy BTC</button>
+</div>
+<p id="buyCost" class="calculated">Cost: $0.00</p>
+
+<div class="container">
+    <input type="number" id="sellAmount" placeholder="Amount to Sell (BTC)" step="0.000001">
+    <button id="sellSpecificBtn">Sell BTC</button>
+</div>
+<p id="sellProceeds" class="calculated">Proceeds: $0.00</p>
+
+<div class="button-group">
+    <button id="sellAllBtn">Sell All BTC</button>
+</div>
+
+<div class="button-group">
+    <button id="clearFieldsBtn">Clear All Fields</button>
+</div>
+
+<div class="container">
+    <input type="number" id="highPrice" placeholder="High Price Notification (BTC)" step="0.000001">
+    <input type="number" id="lowPrice" placeholder="Low Price Notification (BTC)" step="0.000001">
+</div>
+<div class="button-group">
+    <button id="setNotificationBtn">Set Notification</button>
+    <button id="removeNotificationBtn">Remove Notification</button>
+</div>
+
+<div class="info">
+    <p>Bitcoin Price: <span id="btcPrice">Loading...</span> USDT</p>
+    <p>USDT Balance: <span id="usdtBalance">Loading...</span></p>
+    <p>BTC Balance: <span id="btcBalance">Loading...</span></p>
+</div>
+
+<div class="status">
+    <p id="notificationStatus">No notification set</p>
+</div>
+
+<script>
+  const buySpecificBtn = document.getElementById('buySpecificBtn');
+  const sellSpecificBtn = document.getElementById('sellSpecificBtn');
+  const sellAllBtn = document.getElementById('sellAllBtn');
+  const clearFieldsBtn = document.getElementById('clearFieldsBtn');
+  const setNotificationBtn = document.getElementById('setNotificationBtn');
+  const removeNotificationBtn = document.getElementById('removeNotificationBtn');
+  const btcPriceEl = document.getElementById('btcPrice');
+  const usdtBalanceEl = document.getElementById('usdtBalance');
+  const btcBalanceEl = document.getElementById('btcBalance');
+  const buyAmountInput = document.getElementById('buyAmount');
+  const sellAmountInput = document.getElementById('sellAmount');
+  const highPriceInput = document.getElementById('highPrice');
+  const lowPriceInput = document.getElementById('lowPrice');
+  const notificationStatusEl = document.getElementById('notificationStatus');
+  const buyCostEl = document.getElementById('buyCost');
+  const sellProceedsEl = document.getElementById('sellProceeds');
+
+  let highPriceThreshold = null;
+  let lowPriceThreshold = null;
+  let currentBtcPrice = 0;
+  let currentBtcBalance = 0;
+
+  // Function to format numbers as US currency
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  }
+
+  // Function to play a notification sound twice with 2 seconds interval
+  function playNotificationSound() {
+    const audio = new Audio('mixkit-bell-notification-933.wav'); // Update sound file name here
+
+    // Play the sound twice with a 2 seconds interval
+    audio.play();
+  }
+
+  // Function to fetch and display BTC price, USDT, and BTC balance
+  async function updateInfo() {
+    try {
+      const priceResponse = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+      const priceData = await priceResponse.json();
+      currentBtcPrice = parseFloat(priceData.price);
+      btcPriceEl.innerText = formatCurrency(currentBtcPrice);
+      document.title = `BTC: ${formatCurrency(currentBtcPrice)}`; // Update the tab title
+
+      // Check and trigger notifications
+      if (highPriceThreshold !== null && currentBtcPrice >= highPriceThreshold) {
+        showNotification(`BTC Price Alert!`, `BTC has reached ${formatCurrency(currentBtcPrice)}.`);
+        playNotificationSound();
+        highPriceThreshold = null; // Clear notification once triggered
+        setCookie('highPriceThreshold', '');
+      }
+
+      if (lowPriceThreshold !== null && currentBtcPrice <= lowPriceThreshold) {
+        showNotification(`BTC Price Alert!`, `BTC has dropped to ${formatCurrency(currentBtcPrice)}.`);
+        playNotificationSound();
+        lowPriceThreshold = null; // Clear notification once triggered
+        setCookie('lowPriceThreshold', '');
+      }
+
+      const usdtBalanceResponse = await fetch('/balance/usdt');
+      const usdtBalanceData = await usdtBalanceResponse.json();
+      usdtBalanceEl.innerText = formatCurrency(usdtBalanceData.usdtBalance);
+
+      const btcBalanceResponse = await fetch('/balance/btc');
+      const btcBalanceData = await btcBalanceResponse.json();
+      currentBtcBalance = btcBalanceData.btcBalance; // Update current BTC balance
+      btcBalanceEl.innerText = currentBtcBalance.toFixed(6);
+
+      // Update the calculated amounts based on the current BTC price
+      updateCalculatedAmounts();
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
+  // Function to show a notification
+  function showNotification(title, message) {
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body: message });
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          new Notification(title, { body: message });
+        }
+      });
+    }
+  }
+
+  // Function to update the notification status
+  function updateNotificationStatus() {
+    if (highPriceThreshold !== null && lowPriceThreshold === null) {
+      notificationStatusEl.innerText = `Notification set: High Price at ${formatCurrency(highPriceThreshold)}`;
+    } else if (lowPriceThreshold !== null && highPriceThreshold === null) {
+      notificationStatusEl.innerText = `Notification set: Low Price at ${formatCurrency(lowPriceThreshold)}`;
+    } else if (highPriceThreshold !== null && lowPriceThreshold !== null) {
+      notificationStatusEl.innerText = `Notification set: High Price at ${formatCurrency(highPriceThreshold)}, Low Price at ${formatCurrency(lowPriceThreshold)}`;
+    } else {
+      notificationStatusEl.innerText = 'No notification set';
+    }
+  }
+
+  // Function to update the calculated amounts based on BTC input
+  function updateCalculatedAmounts() {
+    const buyAmount = parseFloat(buyAmountInput.value);
+    const sellAmount = parseFloat(sellAmountInput.value);
+
+    if (!isNaN(buyAmount) && buyAmount > 0) {
+      const buyCost = buyAmount * currentBtcPrice;
+      buyCostEl.innerText = `Cost: ${formatCurrency(buyCost)}`;
+    } else {
+      buyCostEl.innerText = `Cost: $0.00`;
+    }
+
+    if (!isNaN(sellAmount) && sellAmount > 0) {
+      const sellProceeds = sellAmount * currentBtcPrice;
+      sellProceedsEl.innerText = `Proceeds: ${formatCurrency(sellProceeds)}`;
+    } else {
+      sellProceedsEl.innerText = `Proceeds: $0.00`;
+    }
+  }
+
+  // Set interval to update the information every second
+  setInterval(updateInfo, 1000);
+
+  // Function to set a cookie
+  function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+  }
+
+  // Function to get a cookie by name
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  }
+
+  // Function to erase a cookie
+  function eraseCookie(name) {
+    document.cookie = name + '=; Max-Age=-99999999;';
+  }
+
+  // Load notification thresholds from cookies
+  function loadNotificationSettings() {
+    const highPriceCookie = getCookie('highPriceThreshold');
+    const lowPriceCookie = getCookie('lowPriceThreshold');
+
+    highPriceThreshold = highPriceCookie ? parseFloat(highPriceCookie) : null;
+    lowPriceThreshold = lowPriceCookie ? parseFloat(lowPriceCookie) : null;
+
+    highPriceInput.value = highPriceThreshold || '';
+    lowPriceInput.value = lowPriceThreshold || '';
+
+    updateNotificationStatus();
+  }
+
+  // Event listener for Buy BTC button
+  buySpecificBtn.addEventListener('click', async () => {
+    const amount = parseFloat(buyAmountInput.value);
+    if (isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid amount to buy.');
+      return;
+    }
+
+    const confirmation = confirm(`Are you sure you want to buy ${amount} BTC for ${formatCurrency(amount * currentBtcPrice)}?`);
+    if (confirmation) {
+      try {
+        const response = await fetch('/buy-specific-btc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: amount })
+        });
+        const data = await response.json();
+        alert(`Buy Response: ${JSON.stringify(data)}`);
+        updateInfo();
+      } catch (error) {
+        alert('Error placing buy order for specific amount:', error);
+      }
+    }
+  });
+
+  // Event listener for Sell BTC button
+  sellSpecificBtn.addEventListener('click', async () => {
+    const amount = parseFloat(sellAmountInput.value);
+    if (isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid amount to sell.');
+      return;
+    }
+
+    const confirmation = confirm(`Are you sure you want to sell ${amount} BTC for ${formatCurrency(amount * currentBtcPrice)}?`);
+    if (confirmation) {
+      try {
+        const response = await fetch('/sell-specific-btc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: amount })
+        });
+        const data = await response.json();
+        alert(`Sell Response: ${JSON.stringify(data)}`);
+        updateInfo();
+      } catch (error) {
+        alert('Error placing sell order for specific amount:', error);
+      }
+    }
+  });
+
+  // Event listener for Sell All BTC button
+  sellAllBtn.addEventListener('click', () => {
+    if (currentBtcBalance > 0) {
+      sellAmountInput.value = currentBtcBalance.toFixed(6);
+      updateCalculatedAmounts();
+    } else {
+      alert('No BTC balance available to sell.');
+    }
+  });
+
+  // Event listener for Clear All Fields button
+  clearFieldsBtn.addEventListener('click', () => {
+    buyAmountInput.value = '';
+    sellAmountInput.value = '';
+    highPriceInput.value = '';
+    lowPriceInput.value = '';
+    buyCostEl.innerText = 'Cost: $0.00';
+    sellProceedsEl.innerText = 'Proceeds: $0.00';
+  });
+
+  // Event listener for Set Notifications button
+  setNotificationBtn.addEventListener('click', () => {
+    const highPrice = parseFloat(highPriceInput.value);
+    const lowPrice = parseFloat(lowPriceInput.value);
+
+    if ((isNaN(highPrice) || highPrice <= 0) && (isNaN(lowPrice) || lowPrice <= 0)) {
+      alert('Please enter at least one valid price threshold.');
+      return;
+    }
+
+    highPriceThreshold = (isNaN(highPrice) || highPrice <= 0) ? null : highPrice;
+    lowPriceThreshold = (isNaN(lowPrice) || lowPrice <= 0) ? null : lowPrice;
+    setCookie('highPriceThreshold', highPriceThreshold ? highPriceThreshold.toString() : '', 7);
+    setCookie('lowPriceThreshold', lowPriceThreshold ? lowPriceThreshold.toString() : '', 7);
+    updateNotificationStatus();
+  });
+
+  // Event listener for Remove Notifications button
+  removeNotificationBtn.addEventListener('click', () => {
+    highPriceThreshold = null;
+    lowPriceThreshold = null;
+    eraseCookie('highPriceThreshold');
+    eraseCookie('lowPriceThreshold');
+    updateNotificationStatus();
+  });
+
+  // Event listeners for input changes to update calculated amounts
+  buyAmountInput.addEventListener('input', updateCalculatedAmounts);
+  sellAmountInput.addEventListener('input', updateCalculatedAmounts);
+
+  // Initial load of information and notification settings
+  updateInfo();
+  loadNotificationSettings();
+</script>
+</body>
+</html>
