@@ -200,6 +200,19 @@
     }
   }
 
+  function subtractPercentage(number, percentage, decimals) {
+    // Calculate the percentage amount to subtract
+    const amountToSubtract = number * (percentage / 100);
+
+    // Subtract the amount from the original number
+    const result = number - amountToSubtract;
+
+    // Round to the specified number of decimal places
+    const roundedResult = Number(result.toFixed(decimals));
+
+    return roundedResult;
+  }
+
   // Function to set a cookie
   function setCookie(name, value, days) {
     let expires = "";
@@ -297,6 +310,13 @@
 
   // Event listener for Sell All BTC button
   sellAllBtn.addEventListener('click', () => {
+    /*const currentBtcBalanceMinusFee = subtractPercentage(currentBtcBalance, 0.1, 6);
+    if (currentBtcBalanceMinusFee > 0) {
+      sellAmountInput.value = currentBtcBalanceMinusFee;
+      updateCalculatedAmounts();
+    } else {
+      alert('No BTC balance available to sell.');
+    }*/
     if (currentBtcBalance > 0) {
       sellAmountInput.value = currentBtcBalance.toFixed(6);
       updateCalculatedAmounts();
