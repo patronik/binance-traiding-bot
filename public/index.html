@@ -38,7 +38,7 @@
     <div id="editor">
         /**
             Variables available:
-            let allowTrading; let currentBtcPrice; let currentBtcBalance; let currentUsdtBalance;
+            let currentBtcPrice; let currentBtcBalance; let currentUsdtBalance;
 
             Html buttons available:
             document.getElementById('sellAllBtn');
@@ -48,6 +48,7 @@
             Html elements available:
             document.getElementById('buyAmount');
             document.getElementById('sellAmount');
+            document.getElementById("executeCheckbox").checked;
         **/
     </div>
 
@@ -94,7 +95,6 @@
   const buyCostEl = document.getElementById('buyCost');
   const sellProceedsEl = document.getElementById('sellProceeds');
 
-  let allowTrading = true;
   let highPriceThreshold = null;
   let lowPriceThreshold = null;
   let currentBtcPrice = 0;
@@ -268,11 +268,6 @@
 
   // Event listener for Buy BTC button
   buySpecificBtn.addEventListener('click', async () => {
-    if (!allowTrading) {
-      console.log('Trading is disabled.');
-      return;
-    }
-
     const amount = parseFloat(buyAmountInput.value);
     if (isNaN(amount) || amount <= 0) {
       alert('Please enter a valid amount to buy.');
@@ -298,11 +293,6 @@
 
   // Event listener for Sell BTC button
   sellSpecificBtn.addEventListener('click', async () => {
-    if (!allowTrading) {
-      console.log('Trading is disabled.');
-      return;
-    }
-
     const amount = parseFloat(sellAmountInput.value);
     if (isNaN(amount) || amount <= 0) {
       alert('Please enter a valid amount to sell.');
