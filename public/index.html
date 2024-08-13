@@ -224,7 +224,7 @@
     }
 
     const confirmation = !confirmationNeeded || confirm(
-      `Are you sure you want to buy ${amount} BTC for ${formatCurrency(amount * currentBtcPrice)}?`
+      `Are you sure you want to buy ${(amount / currentBtcPrice).toFixed(6)} BTC for ${formatCurrency(amount)}?`
     );
     if (confirmation) {
       try {
