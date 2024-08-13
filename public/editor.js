@@ -9,7 +9,7 @@ if (editorInitialContent != null) {
   editorInitialContent = atob(editorInitialContent);
 } else {
   editorInitialContent = `
-  /**
+/**
     Variables available:
     let currentBtcPrice; let currentBtcBalance; let currentUsdtBalance;
 
