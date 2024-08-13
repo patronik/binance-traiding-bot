@@ -306,14 +306,18 @@
     prefillUSDT();
   });
 
-  // Event listener for Clear All Fields button
-  clearFieldsBtn.addEventListener('click', () => {
+  function clearInputValues() {
     buyAmountInput.value = '';
     sellAmountInput.value = '';
     highPriceInput.value = '';
     lowPriceInput.value = '';
     buyCostEl.innerText = 'BTC: 0.00';
     sellProceedsEl.innerText = 'Proceeds: $0.00';
+  }
+
+  // Event listener for Clear All Fields button
+  clearFieldsBtn.addEventListener('click', () => {
+    clearInputValues();
   });
 
   // Event listener for Set Notifications button
