@@ -20,3 +20,12 @@ window.getCookie = function (name) {
   }
   return null;
 }
+
+// Function to initialize checkbox state
+function initExecuteCheckbox() {
+  let checkbox = document.getElementById('executeCheckbox');
+  checkbox.checked = getCookie('executeCheckboxState') === 'true';
+  checkbox.addEventListener('change', function() {
+    setCookie('executeCheckboxState', checkbox.checked, 7);
+  });
+}
