@@ -12,17 +12,6 @@ if (editorInitialContent != null) {
 /**
     Variables available:
     let currentBtcPrice; let currentBtcBalance; let currentUsdtBalance;
-
-    Html buttons available:
-    document.getElementById('sellAllBtn');
-    document.getElementById('sellSpecificBtn');
-    document.getElementById('clearFieldsBtn');
-    document.getElementById('buySpecificBtn');
-
-    Html elements available:
-    document.getElementById('buyAmount');
-    document.getElementById('sellAmount');
-    document.getElementById("executeCheckbox").checked;
 **/
 `;
 }
