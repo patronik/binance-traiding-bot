@@ -16,14 +16,14 @@
 <h1>Binance Trading Bot</h1>
 
 <div class="container">
-    <input type="number" id="buyAmount" placeholder="Amount to Buy (BTC)" step="0.000001">
-    <button id="buySpecificBtn">Buy BTC</button>
+    <input type="number" id="sellUSDTAmount" placeholder="Amount to Sell (USDT)" step="0.01">
+    <button id="sellSpecificUSDT">Sell USDT</button>
     <button id="prefillUSDTToSell">Prefill USDT to sell</button>
 </div>
 <p id="buyCost" class="calculated">BTC: 0.00</p>
 
 <div class="container">
-    <input type="number" id="sellAmount" placeholder="Amount to Sell (BTC)" step="0.000001">
+    <input type="number" id="sellBTCAmount" placeholder="Amount to Sell (BTC)" step="0.000001">
     <button id="sellSpecificBtn">Sell BTC</button>
     <button id="prefillBtcToSell">Prefill BTC to sell</button>
 </div>
@@ -63,7 +63,7 @@
 </div>
 
 <script>
-  const buySpecificBtn = document.getElementById('buySpecificBtn');
+  const sellSpecificUSDT = document.getElementById('sellSpecificUSDT');
   const sellSpecificBtn = document.getElementById('sellSpecificBtn');
   const prefillBtcToSell = document.getElementById('prefillBtcToSell');
   const prefillUSDTToSell = document.getElementById('prefillUSDTToSell');
@@ -73,8 +73,8 @@
   const btcPriceEl = document.getElementById('btcPrice');
   const usdtBalanceEl = document.getElementById('usdtBalance');
   const btcBalanceEl = document.getElementById('btcBalance');
-  const buyAmountInput = document.getElementById('buyAmount');
-  const sellAmountInput = document.getElementById('sellAmount');
+  const sellUSDTAmountInput = document.getElementById('sellUSDTAmount');
+  const sellBTCAmountInput = document.getElementById('sellBTCAmount');
   const highPriceInput = document.getElementById('highPrice');
   const lowPriceInput = document.getElementById('lowPrice');
   const notificationStatusEl = document.getElementById('notificationStatus');
@@ -176,18 +176,18 @@
 
   // Function to update the calculated amounts based on BTC input
   function updateCalculatedAmounts() {
-    const buyAmount = parseFloat(buyAmountInput.value);
-    const sellAmount = parseFloat(sellAmountInput.value);
+    const sellUSDTAmount = parseFloat(sellUSDTAmountInput.value);
+    const sellBTCAmount = parseFloat(sellBTCAmountInput.value);
 
-    if (!isNaN(buyAmount) && buyAmount > 0) {
-      const buyCost = buyAmount / currentBtcPrice;
+    if (!isNaN(sellUSDTAmount) && sellUSDTAmount > 0) {
+      const buyCost = sellUSDTAmount / currentBtcPrice;
       buyCostEl.innerText = `BTC: ${buyCost.toFixed(6)}`;
     } else {
       buyCostEl.innerText = `BTC: 0.00`;
     }
 
-    if (!isNaN(sellAmount) && sellAmount > 0) {
-      const sellProceeds = sellAmount * currentBtcPrice;
+    if (!isNaN(sellBTCAmount) && sellBTCAmount > 0) {
+      const sellProceeds = sellBTCAmount * currentBtcPrice;
       sellProceedsEl.innerText = `Proceeds: ${formatCurrency(sellProceeds)}`;
     } else {
       sellProceedsEl.innerText = `Proceeds: $0.00`;
@@ -217,7 +217,7 @@
   setInterval(updateInfo, 1000);
 
   async function buySpecificBTCAmount(confirmationNeeded = true) {
-    const amount = parseFloat(buyAmountInput.value);
+    const amount = parseFloat(sellUSDTAmountInput.value);
     if (isNaN(amount) || amount <= 0) {
       alert('Please enter a valid amount to buy.');
       return;
@@ -243,12 +243,12 @@
   }
 
   // Event listener for Buy BTC button
-  buySpecificBtn.addEventListener('click', async () => {
+  sellSpecificUSDT.addEventListener('click', async () => {
     await buySpecificBTCAmount();
   });
 
   async function sellSpecificBTCAmount(confirmationNeeded = true) {
-    const amount = parseFloat(sellAmountInput.value);
+    const amount = parseFloat(sellBTCAmountInput.value);
     if (isNaN(amount) || amount <= 0) {
       alert('Please enter a valid amount to sell.');
       return;
@@ -280,7 +280,7 @@
 
   function prefillBTC() {
     if (currentBtcBalance > 0) {
-      sellAmountInput.value = currentBtcBalance.toFixed(6);
+      sellBTCAmountInput.value = currentBtcBalance.toFixed(6);
       updateCalculatedAmounts();
     } else {
       alert('No BTC balance available to sell.');
@@ -294,7 +294,7 @@
 
   function prefillUSDT() {
     if (currentUsdtBalance > 0) {
-      buyAmountInput.value = currentUsdtBalance.toFixed(6);
+      sellUSDTAmountInput.value = currentUsdtBalance.toFixed(6);
       updateCalculatedAmounts();
     } else {
       alert('No USDT balance available to sell.');
@@ -307,8 +307,8 @@
   });
 
   function clearInputValues() {
-    buyAmountInput.value = '';
-    sellAmountInput.value = '';
+    sellUSDTAmountInput.value = '';
+    sellBTCAmountInput.value = '';
     highPriceInput.value = '';
     lowPriceInput.value = '';
     buyCostEl.innerText = 'BTC: 0.00';
@@ -347,8 +347,8 @@
   });
 
   // Event listeners for input changes to update calculated amounts
-  buyAmountInput.addEventListener('input', updateCalculatedAmounts);
-  sellAmountInput.addEventListener('input', updateCalculatedAmounts);
+  sellUSDTAmountInput.addEventListener('input', updateCalculatedAmounts);
+  sellBTCAmountInput.addEventListener('input', updateCalculatedAmounts);
 
   // Initial load of information and notification settings
   initExecuteCheckbox();
