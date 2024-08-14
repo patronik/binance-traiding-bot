@@ -4,7 +4,7 @@
 
 This Binance Trading Bot is a simple web application that allows users to trade Bitcoin (BTC) on Binance using a REST API. The application includes a frontend interface for buying and selling BTC, checking balances, and setting price notifications. It provides a user-friendly way to interact with your Binance account by integrating real-time price updates and balance displays.
 
-![Alt text](example.png)
+<img src='./example.png'>
 
 ## Features
 
