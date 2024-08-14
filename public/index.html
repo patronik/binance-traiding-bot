@@ -216,7 +216,7 @@
   // Set interval to update the information every second
   setInterval(updateInfo, 1000);
 
-  async function buySpecificBTCAmount(confirmationNeeded = true) {
+  async function sellSpecificUSDTAmount(confirmationNeeded = true) {
     const amount = parseFloat(sellUSDTAmountInput.value);
     if (isNaN(amount) || amount <= 0) {
       alert('Please enter a valid amount to buy.');
@@ -244,7 +244,7 @@
 
   // Event listener for Buy BTC button
   sellSpecificUSDT.addEventListener('click', async () => {
-    await buySpecificBTCAmount();
+    await sellSpecificUSDTAmount();
   });
 
   async function sellSpecificBTCAmount(confirmationNeeded = true) {
