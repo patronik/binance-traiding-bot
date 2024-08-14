@@ -50,10 +50,10 @@ async function getBTCBalance() {
 }
 
 // Function to buy a specific amount of BTC
-async function buySpecificAmount(USDTAmount) {
-  if (USDTAmount > 0) {
+async function buySpecificBTCAmount(amount) {
+  if (amount > 0) {
     try {
-      const result = await binance.marketBuy('BTCUSDT', USDTAmount.toFixed(6));
+      const result = await binance.marketBuy('BTCUSDT', amount.toFixed(6));
       return result;
     } catch (error) {
       console.error('Error placing buy order for specific amount:', error);
@@ -65,10 +65,10 @@ async function buySpecificAmount(USDTAmount) {
 }
 
 // Function to sell a specific amount of BTC
-async function sellSpecificAmount(BTCAmount) {
-  if (BTCAmount > 0) {
+async function sellSpecificBTCAmount(amount) {
+  if (amount > 0) {
     try {
-      const result = await binance.marketSell('BTCUSDT', BTCAmount.toFixed(6));
+      const result = await binance.marketSell('BTCUSDT', amount.toFixed(6));
       return result;
     } catch (error) {
       console.error('Error placing sell order for specific amount:', error);
@@ -95,7 +95,7 @@ app.get('/balance/btc', async (req, res) => {
 app.post('/buy-specific-btc', async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body
   const { amount } = req.body;
-  const response = await buySpecificAmount(parseFloat(amount));
+  const response = await buySpecificBTCAmount(parseFloat(amount));
   res.json(response);
 });
 
@@ -103,7 +103,7 @@ app.post('/buy-specific-btc', async (req, res) => {
 app.post('/sell-specific-btc', async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body
   const { amount } = req.body;
-  const response = await sellSpecificAmount(parseFloat(amount));
+  const response = await sellSpecificBTCAmount(parseFloat(amount));
   res.json(response);
 });
 
