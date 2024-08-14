@@ -291,7 +291,8 @@
 
   function prefillMaxBTC() {
     if (currentBtcBalance > 0) {
-      sellBTCAmountInput.value = subtractPercentage(currentBtcBalance.toFixed(5), 0.1);
+      const correctedBtcBalance = subtractPercentage(currentBtcBalance, 0.1);
+      sellBTCAmountInput.value = correctedBtcBalance.toFixed(5);
       updateCalculatedAmounts();
     } else {
       alert('No BTC balance available to sell.');
@@ -305,7 +306,8 @@
 
   function prefillMaxUSDT() {
     if (currentUsdtBalance > 0) {
-      buyBTCAmountInput.value = subtractPercentage(currentUsdtBalance.toFixed(2), 0.1);
+      const correctedUsdtBalance = subtractPercentage(currentUsdtBalance, 0.1);
+      buyBTCAmountInput.value = correctedUsdtBalance.toFixed(2);
       updateCalculatedAmounts();
     } else {
       alert('No USDT balance available to sell.');
