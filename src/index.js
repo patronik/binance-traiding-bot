@@ -53,7 +53,7 @@ async function getBTCBalance() {
 async function buySpecificBTCAmount(amount) {
   if (amount > 0) {
     try {
-      const result = await binance.marketBuy('BTCUSDT', amount.toFixed(6));
+      const result = await binance.marketBuy('BTCUSDT', amount);
       return result;
     } catch (error) {
       console.error('Error placing buy order for specific amount:', error);
@@ -68,7 +68,7 @@ async function buySpecificBTCAmount(amount) {
 async function sellSpecificBTCAmount(amount) {
   if (amount > 0) {
     try {
-      const result = await binance.marketSell('BTCUSDT', amount.toFixed(6));
+      const result = await binance.marketSell('BTCUSDT', amount);
       return result;
     } catch (error) {
       console.error('Error placing sell order for specific amount:', error);
