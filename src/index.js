@@ -49,14 +49,14 @@ async function getBTCBalance() {
   }
 }
 
-// Function to buy a specific amount of BTC
-async function buySpecificBTCAmount(amount) {
+// Function to buy BTC
+async function buyBTCAmount(amount) {
   if (amount > 0) {
     try {
       const result = await binance.marketBuy('BTCUSDT', amount);
       return result;
     } catch (error) {
-      console.error('Error placing buy order for specific amount:', error);
+      console.error('Error placing buy order:', error);
       return { error: error.message };
     }
   } else {
@@ -64,14 +64,14 @@ async function buySpecificBTCAmount(amount) {
   }
 }
 
-// Function to sell a specific amount of BTC
-async function sellSpecificBTCAmount(amount) {
+// Function to sell BTC
+async function sellBTCAmount(amount) {
   if (amount > 0) {
     try {
       const result = await binance.marketSell('BTCUSDT', amount);
       return result;
     } catch (error) {
-      console.error('Error placing sell order for specific amount:', error);
+      console.error('Error placing sell order:', error);
       return { error: error.message };
     }
   } else {
@@ -91,19 +91,19 @@ app.get('/balance/btc', async (req, res) => {
   res.json({ btcBalance: btcBalance });
 });
 
-// Endpoint to buy a specific amount of BTC
-app.post('/buy-specific-btc', async (req, res) => {
+// Endpoint to buy BTC
+app.post('/buy-btc', async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body
   const { amount } = req.body;
-  const response = await buySpecificBTCAmount(parseFloat(amount));
+  const response = await buyBTCAmount(parseFloat(amount));
   res.json(response);
 });
 
-// Endpoint to sell a specific amount of BTC
-app.post('/sell-specific-btc', async (req, res) => {
+// Endpoint to sell BTC
+app.post('/sell-btc', async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body
   const { amount } = req.body;
-  const response = await sellSpecificBTCAmount(parseFloat(amount));
+  const response = await sellBTCAmount(parseFloat(amount));
   res.json(response);
 });
 
