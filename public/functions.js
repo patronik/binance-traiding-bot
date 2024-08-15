@@ -29,3 +29,11 @@ function initExecuteCheckbox() {
     setCookie('executeCheckboxState', checkbox.checked, 7);
   });
 }
+
+function disableCallback() {
+  let checkbox = document.getElementById('executeCheckbox');
+  if (checkbox.checked) {
+   checkbox.checked = false;
+   setCookie('executeCheckboxState', false, 7);
+ }
+}
