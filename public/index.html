@@ -86,6 +86,7 @@
   let currentBtcPrice = 0;
   let currentBtcBalance = 0;
   let currentUsdtBalance = 0;
+  const percentToSubstract = 0.2;
 
   // Function to format numbers as US currency
   function formatCurrency(value) {
@@ -291,7 +292,7 @@
 
   function prefillMaxBTC() {
     if (currentBtcBalance > 0) {
-      const correctedBtcBalance = subtractPercentage(currentBtcBalance, 0.1);
+      const correctedBtcBalance = subtractPercentage(currentBtcBalance, percentToSubstract);
       sellBTCAmountInput.value = correctedBtcBalance.toFixed(5);
       updateCalculatedAmounts();
     } else {
@@ -306,7 +307,7 @@
 
   function prefillMaxUSDT() {
     if (currentUsdtBalance > 0) {
-      const correctedUsdtBalance = subtractPercentage(currentUsdtBalance, 0.1);
+      const correctedUsdtBalance = subtractPercentage(currentUsdtBalance, percentToSubstract);
       buyBTCAmountInput.value = correctedUsdtBalance.toFixed(2);
       updateCalculatedAmounts();
     } else {
