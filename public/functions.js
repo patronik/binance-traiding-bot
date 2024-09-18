@@ -26,7 +26,7 @@ function initExecuteCheckbox() {
   let checkbox = document.getElementById('executeCheckbox');
   checkbox.checked = getCookie('executeCheckboxState') === 'true';
   checkbox.addEventListener('change', function() {
-    setCookie('executeCheckboxState', checkbox.checked, 7);
+    setCookie('executeCheckboxState', checkbox.checked, 256);
   });
 }
 
@@ -34,6 +34,6 @@ function disableCallback() {
   let checkbox = document.getElementById('executeCheckbox');
   if (checkbox.checked) {
    checkbox.checked = false;
-   setCookie('executeCheckboxState', false, 7);
+   setCookie('executeCheckboxState', false, 256);
  }
 }

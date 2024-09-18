@@ -346,8 +346,8 @@
 
     highPriceThreshold = (isNaN(highPrice) || highPrice <= 0) ? null : highPrice;
     lowPriceThreshold = (isNaN(lowPrice) || lowPrice <= 0) ? null : lowPrice;
-    setCookie('highPriceThreshold', highPriceThreshold ? highPriceThreshold.toString() : '', 7);
-    setCookie('lowPriceThreshold', lowPriceThreshold ? lowPriceThreshold.toString() : '', 7);
+    setCookie('highPriceThreshold', highPriceThreshold ? highPriceThreshold.toString() : '', 256);
+    setCookie('lowPriceThreshold', lowPriceThreshold ? lowPriceThreshold.toString() : '', 256);
     updateNotificationStatus();
   });
 

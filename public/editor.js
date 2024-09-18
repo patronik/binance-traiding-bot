@@ -19,7 +19,7 @@ if (editorInitialContent != null) {
 editor.setValue(editorInitialContent);
 
 editor.on('input', () => {
-  setCookie('editorContent', btoa(editor.getValue()), 7);
+  setCookie('editorContent', btoa(editor.getValue()), 256);
 });
 
 // Function to execute code
