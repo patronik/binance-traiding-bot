@@ -99,7 +99,7 @@ const runMonitoring = async () => {
     try {
       const response = await fetch(apiUrl);
       let data = await response.json();
-      data = data.filter(i => /.*USDT$/.test(i.symbol));
+      data = data.filter(i => symbols.includes(i.symbol));
 
       data.forEach(item => {
         const { symbol, price } = item;
