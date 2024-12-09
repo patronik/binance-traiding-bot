@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+<body>
+</body>
+</html>
+<script>
+const runMonitoring = async () => {
+  const symbols = await (async () => { 
+    const response = await fetch('/change-symbols', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    });
+    return await response.json();
+  })();
+
+  // Define the symbols to fetch
+  const apiUrl = `https://api.binance.com/api/v3/ticker/price`;
+
+  // Initialize data storage
+  const priceHistory = {};
+  symbols.forEach(symbol => priceHistory[symbol] = []);
+
+  // Create table structure in HTML
+  document.body.innerHTML = `
+    <table border="1" id="priceTable">
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Current Price (USDT)</th>
+          <th data-sort="number">Change (1 minute %)</th>
+          <th data-sort="number">Change (3 minutes %)</th>
+          <th data-sort="number">Change (5 minutes %)</th>
+          <th data-sort="number">Change (15 minutes%)</th>
+          <th data-sort="number">Change (30 minutes%)</th>
+          <th data-sort="number">Change (60 minutes%)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${symbols.map(symbol => `
+          <tr id="row-${symbol}">
+            <td><a href="https://www.binance.com/uk-UA/trade/${symbol.replace('USDT', '_USDT')}?_from=markets&type=spot" target="_blank">${symbol}</a></td>
+            <td id="price-${symbol}">--</td>
+            <td id="change-${60}-${symbol}">--</td>
+            <td id="change-${60 * 3}-${symbol}">--</td>
+            <td id="change-${60 * 5}-${symbol}">--</td>
+            <td id="change-${60 * 15}-${symbol}">--</td>
+            <td id="change-${60 * 30}-${symbol}">--</td>
+            <td id="change-${60 * 60}-${symbol}">--</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+
+  const sortTable = (function () {
+    let sortingSkippedCount = 0;
+    // Function to sort the table
+    return function() {
+      if (sortingSkippedCount == 1) {
+        const table = document.getElementById("priceTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.rows);
+
+        rows.sort((rowA, rowB) => {
+          const changeA = parseFloat(rowA.cells[2].textContent.trim());
+          const changeB = parseFloat(rowB.cells[2].textContent.trim());
+          return changeB - changeA; // Descending order
+        });
+
+        // Reorder rows in the table
+        rows.forEach(row => tbody.appendChild(row));
+        sortingSkippedCount == 0;
+      } else {
+        sortingSkippedCount++;
+      }
+    }
+  })();
+
+
+  // Fetch and update prices every second
+  setInterval(async () => {
+    try {
+      const response = await fetch(apiUrl);
+      let data = await response.json();
+      data = data.filter(i => /.*USDT$/.test(i.symbol));
+
+      data.forEach(item => {
+        const { symbol, price } = item;
+        const currentPrice = parseFloat(price);
+        
+        // Add price to history
+        priceHistory[symbol].push(currentPrice);
+
+        // Update the table
+        document.getElementById(`price-${symbol}`).textContent = currentPrice.toFixed(8);
+
+        let shift = false; 
+
+        // Update the price history for the last minute
+        if (priceHistory[symbol].length >= 60) {
+          // Calculate percentage change
+          const priceChange = ((priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - 60]) / priceHistory[symbol][priceHistory[symbol].length - 60] * 100).toFixed(2);
+          document.getElementById(`change-${60}-${symbol}`).textContent = `${priceChange}`;
+        } else {
+          document.getElementById(`change-${60}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
+        }
+
+        if (priceHistory[symbol].length >= 60 * 3) {
+          // Calculate percentage change
+          const priceChange = ((priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - 60 * 3]) / priceHistory[symbol][priceHistory[symbol].length - 60 * 3] * 100).toFixed(2);
+          document.getElementById(`change-${60 * 3}-${symbol}`).textContent = `${priceChange}`;
+        } else {
+          document.getElementById(`change-${60 * 3}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
+        }
+
+        if (priceHistory[symbol].length >= 60 * 5) {
+          // Calculate percentage change
+          const priceChange = ((priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - 60 * 5]) / priceHistory[symbol][priceHistory[symbol].length - 60 * 5] * 100).toFixed(2);
+          document.getElementById(`change-${60 * 5}-${symbol}`).textContent = `${priceChange}`;
+        } else {
+          document.getElementById(`change-${60 * 5}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
+        }
+
+        if (priceHistory[symbol].length >= 60 * 15) {
+          // Calculate percentage change
+          const priceChange = ((priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - 60 * 15]) / priceHistory[symbol][priceHistory[symbol].length - 60 * 15] * 100).toFixed(2);
+          document.getElementById(`change-${60 * 15}-${symbol}`).textContent = `${priceChange}`;
+        } else {
+          document.getElementById(`change-${60 * 15}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
+        }
+
+        if (priceHistory[symbol].length >= 60 * 30) {
+          // Calculate percentage change
+          const priceChange = ((priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - 60 * 30]) / priceHistory[symbol][priceHistory[symbol].length - 60 * 30] * 100).toFixed(2);
+          document.getElementById(`change-${60 * 30}-${symbol}`).textContent = `${priceChange}`;
+        } else {
+          document.getElementById(`change-${60 * 30}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
+        }
+
+        if (priceHistory[symbol].length >= 60 * 60) {
+          // Calculate percentage change
+          const priceChange = ((priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - 60 * 60]) / priceHistory[symbol][priceHistory[symbol].length - 60 * 60] * 100).toFixed(2);
+          document.getElementById(`change-${60 * 60}-${symbol}`).textContent = `${priceChange}`;
+          shift = true;
+        } else {
+          document.getElementById(`change-${60 * 60}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
+        }
+        
+        if (priceHistory[symbol].length >= 60) {
+          sortTable();  
+        }
+
+        if (shift) {
+          priceHistory[symbol].shift();
+        }
+
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }, 1000);
+};
+
+runMonitoring();
+
+</script>
