@@ -68,30 +68,46 @@ const runMonitoring = async () => {
     </table>
   `;
 
+  const sortTable = () => {
+    const table = document.getElementById("priceTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.rows);
 
-  const sortTable = (function () {
-    let sortingSkippedCount = 0;
-    // Function to sort the table
-    return function() {
-      if (sortingSkippedCount == 1) {
-        const table = document.getElementById("priceTable");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.rows);
-
-        rows.sort((rowA, rowB) => {
-          const changeA = parseFloat(rowA.cells[2].textContent.trim());
-          const changeB = parseFloat(rowB.cells[2].textContent.trim());
-          return changeB - changeA; // Descending order
-        });
-
-        // Reorder rows in the table
-        rows.forEach(row => tbody.appendChild(row));
-        sortingSkippedCount == 0;
-      } else {
-        sortingSkippedCount++;
+    // Analyze and style cells before sorting
+    rows.forEach(row => {
+      for (let i = 2; i <= 20; i++) {
+        if(typeof row.cells[i] === 'undefined') {
+            continue;
+        }
+        const cell = row.cells[i];
+        if (cell) {
+            const value = parseFloat(cell.textContent.trim());
+            if (!isNaN(value)) {
+                if (value > 0) {
+                    cell.style.backgroundColor = "green";
+                } else if (value < 0) {
+                    cell.style.backgroundColor = "red";
+                } else {
+                    cell.style.backgroundColor = "grey";
+                }
+            } else {
+                // Clear background for non-numeric values
+                cell.style.backgroundColor = ""; 
+            }
+        }
       }
-    }
-  })();
+    });
+
+    // Sort the rows
+    rows.sort((rowA, rowB) => {
+        const changeA = parseFloat(rowA.cells[2].textContent.trim());
+        const changeB = parseFloat(rowB.cells[2].textContent.trim());
+        return changeB - changeA; // Descending order
+    });
+
+    // Reorder rows in the table
+    rows.forEach(row => tbody.appendChild(row));
+  };
 
 
   // Fetch and update prices every second
@@ -133,7 +149,9 @@ const runMonitoring = async () => {
         updateChange(symbol, 60 * 60);
         
         if (priceHistory[symbol].length >= 60) {
-          sortTable();  
+          if (Math.round((new Date()).getTime() / 1000) % 5 == 0) {
+            sortTable();  
+          }          
         }
 
         if (priceHistory[symbol].length >= 60 * 60) {
