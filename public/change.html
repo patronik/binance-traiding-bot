@@ -113,10 +113,6 @@ const runMonitoring = async () => {
   // Fetch and update prices every second
   setInterval(async () => {
     try {
-      const response = await fetch(apiUrl);
-      let data = await response.json();
-      data = data.filter(i => symbols.includes(i.symbol));
-
       function updateChange(symbol, seconds) {
         // Update the price history for the last minute
         if (priceHistory[symbol].length >= seconds) {
@@ -130,8 +126,11 @@ const runMonitoring = async () => {
           document.getElementById(`change-${seconds}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
         }  
       }
+      
+      const response = await fetch(apiUrl);
+      let data = await response.json();      
 
-      data.forEach(item => {
+      data.filter(i => symbols.includes(i.symbol)).forEach(item => {
         const { symbol, price } = item;
         const currentPrice = parseFloat(price);
         
@@ -149,9 +148,7 @@ const runMonitoring = async () => {
         updateChange(symbol, 60 * 60);
         
         if (priceHistory[symbol].length >= 60) {
-          if (Math.round((new Date()).getTime() / 1000) % 5 == 0) {
-            sortTable();  
-          }          
+          sortTable();  
         }
 
         if (priceHistory[symbol].length >= 60 * 60) {
