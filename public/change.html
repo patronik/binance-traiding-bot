@@ -67,32 +67,34 @@
     };
   }
 
-  async function sellAmount(symbol) {
-    let amount = parseFloat(document.getElementById(`f-bal-${symbol}`).textContent);
-    if (isNaN(amount)) {
+  async function sellAll(symbol) {
+    let symbolTotalAmount = parseFloat(document.getElementById(`f-bal-${symbol}`).textContent);
+    if (isNaN(symbolTotalAmount)) {
       alert('Invalid asset amount.');  
       return;
     }
 
-    const assetPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
-    if (isNaN(assetPrice)) {
-      alert(`Invalid asset price ${assetPrice}.`);  
+    const assetUSDTPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
+    if (isNaN(assetUSDTPrice)) {
+      alert(`Invalid asset USDT price ${assetUSDTPrice}.`);  
       return;
     }     
         
-    amount = subtractPercentage(amount, feePercent);    
+    symbolTotalAmount = subtractPercentage(symbolTotalAmount, feePercent);    
     
     const precision = await getSymbolPrecision(symbol);
-    amount = amount.toFixed(precision.qty);
+    symbolTotalAmount = symbolTotalAmount.toFixed(precision.qty);
 
-    const confirmation = confirm(`Are you sure you want to sell ${amount} of ${symbol} (${assetPrice * amount} USDT)?`);
+    const confirmation = confirm(
+      `Are you sure you want to sell ${symbolTotalAmount} of ${symbol} (${assetUSDTPrice * symbolTotalAmount} USDT)?`
+    );
 
     if (confirmation) {
       try {
         const response = await fetch('/sell-symbol', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount, symbol })
+          body: JSON.stringify({ amount: symbolTotalAmount, symbol })
         });
         const data = await response.json();
         alert(`Sell Response: ${JSON.stringify(data)}`);
@@ -109,31 +111,31 @@
       return;
     }    
 
-    const assetPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
-    if (isNaN(assetPrice)) {
-      alert(`Invalid asset price ${assetPrice}.`);  
+    const assetUSDTPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
+    if (isNaN(assetUSDTPrice)) {
+      alert(`Invalid asset price ${assetUSDTPrice}.`);  
       return;
     }    
         
-    let amount = parseFloat(fixedUSDT / assetPrice);
-    if (isNaN(amount)) {
-      alert(`Invalid amount to buy ${amount}.`);  
+    let buyAmount = parseFloat(fixedUSDT / assetUSDTPrice);
+    if (isNaN(buyAmount)) {
+      alert(`Invalid amount to buy ${buyAmount}.`);  
       return;
     }    
 
-    amount = subtractPercentage(amount, feePercent);
+    buyAmount = subtractPercentage(buyAmount, feePercent);
     
     const precision = await getSymbolPrecision(symbol);
-    amount = amount.toFixed(precision.qty);
+    buyAmount = buyAmount.toFixed(precision.qty);
 
-    const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (for ${fixedUSDT} USDT)?`);
+    const confirmation = confirm(`Are you sure you want to buy ${buyAmount} of ${symbol} (for ${fixedUSDT} USDT)?`);
 
     if (confirmation) {
       try {
         const response = await fetch('/buy-symbol', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount, symbol })
+          body: JSON.stringify({ amount: buyAmount, symbol })
         });
         const data = await response.json();
         alert(`Buy Response: ${JSON.stringify(data)}`);
@@ -156,31 +158,31 @@
       return;
     }    
 
-    const assetPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
-    if (isNaN(assetPrice)) {
-      alert(`Invalid asset price ${assetPrice}.`);  
+    const assetUSDTPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
+    if (isNaN(assetUSDTPrice)) {
+      alert(`Invalid asset price ${assetUSDTPrice}.`);  
       return;
     }    
         
-    let amount = parseFloat((USDTBal / 100 * USDTPercent) / assetPrice);
-    if (isNaN(amount)) {
-      alert(`Invalid amount to buy ${amount}.`);  
+    let buyAmount = parseFloat((USDTBal / 100 * USDTPercent) / assetUSDTPrice);
+    if (isNaN(buyAmount)) {
+      alert(`Invalid amount to buy ${buyAmount}.`);  
       return;
     }    
     
-    amount = subtractPercentage(amount, feePercent);
+    buyAmount = subtractPercentage(buyAmount, feePercent);
 
     const precision = await getSymbolPrecision(symbol);
-    amount = amount.toFixed(precision.qty);
+    buyAmount = buyAmount.toFixed(precision.qty);
 
-    const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (for ${USDTPercent}% USDT)?`);
+    const confirmation = confirm(`Are you sure you want to buy ${buyAmount} of ${symbol} (for ${USDTPercent}% USDT)?`);
 
     if (confirmation) {
       try {
         const response = await fetch('/buy-symbol', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount, symbol })
+          body: JSON.stringify({ amount: buyAmount, symbol })
         });
         const data = await response.json();
         alert(`Buy Response: ${JSON.stringify(data)}`);
@@ -239,7 +241,7 @@
             <th id="o-bal-usdt-${symbol}"></th>
             <th><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></th>
             <th><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></th>
-            <th><input type="button" value="Sell all" onclick="sellAmount('${symbol}');" /></th>
+            <th><input type="button" value="Sell all" onclick="sellAll('${symbol}');" /></th>
             <td id="change-${60}-${symbol}">--</td>
             <td id="change-${60 * 3}-${symbol}">--</td>
             <td id="change-${60 * 5}-${symbol}">--</td>
