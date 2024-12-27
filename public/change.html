@@ -62,6 +62,10 @@ const runMonitoring = async () => {
         <tr>
           <th>Symbol</th>
           <th>Current Price (USDT)</th>
+          <th>F bal.</th>
+          <th>O bal.</th>
+          <th>F bal. in USDT</th>
+          <th>O bal. in USDT</th>
           <th data-sort="number">Change (1 minute %)</th>
           <th data-sort="number">Change (3 minutes %)</th>
           <th data-sort="number">Change (5 minutes %)</th>
@@ -75,6 +79,10 @@ const runMonitoring = async () => {
           <tr id="row-${symbol}">
             <td><a href="https://www.binance.com/uk-UA/trade/${symbol.replace('USDT', '_USDT')}?_from=markets&type=spot" target="_blank">${symbol}</a></td>
             <td id="price-${symbol}">--</td>
+            <th id="f-bal-${symbol}"></th>
+            <th id="o-bal-${symbol}"></th>
+            <th id="f-bal-usdt-${symbol}"></th>
+            <th id="o-bal-usdt-${symbol}"></th>
             <td id="change-${60}-${symbol}">--</td>
             <td id="change-${60 * 3}-${symbol}">--</td>
             <td id="change-${60 * 5}-${symbol}">--</td>
@@ -94,7 +102,7 @@ const runMonitoring = async () => {
 
     // Analyze and style cells before sorting
     rows.forEach(row => {
-      for (let i = 2; i <= 20; i++) {
+      for (let i = 6; i <= 20; i++) {
         if(typeof row.cells[i] === 'undefined') {
             continue;
         }
@@ -119,8 +127,8 @@ const runMonitoring = async () => {
 
     // Sort the rows
     rows.sort((rowA, rowB) => {
-        const changeA = parseFloat(rowA.cells[2].textContent.trim());
-        const changeB = parseFloat(rowB.cells[2].textContent.trim());
+        const changeA = parseFloat(rowA.cells[6].textContent.trim());
+        const changeB = parseFloat(rowB.cells[6].textContent.trim());
         return changeB - changeA; // Descending order
     });
 
@@ -136,24 +144,47 @@ const runMonitoring = async () => {
     }  
   };
 
+  function updateChange(symbol, seconds) {
+    // Update the price history for the last minute
+    if (priceHistory[symbol].length >= seconds) {
+      // Calculate percentage change
+      const priceChange = (
+        (priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - seconds]) 
+        / priceHistory[symbol][priceHistory[symbol].length - seconds] * 100
+      ).toFixed(2);
+      document.getElementById(`change-${seconds}-${symbol}`).textContent = `${priceChange}`;
+    } else {
+      document.getElementById(`change-${seconds}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
+    }  
+  }
+
+  async function updateBalances() {
+    const response = await fetch('/balances');
+    const data = await response.json(); 
+
+    Object.entries(data.balances).forEach(([symbol, balances]) => {
+      if (document.getElementById(`f-bal-${symbol}`)) {
+        document.getElementById(`f-bal-${symbol}`).textContent = balances.freeBalance;
+      }      
+
+      if (document.getElementById(`o-bal-${symbol}`)) {
+        document.getElementById(`o-bal-${symbol}`).textContent = balances.onOrderBalance;
+      }      
+
+      if (document.getElementById(`f-bal-usdt-${symbol}`)) {
+        document.getElementById(`f-bal-usdt-${symbol}`).textContent = balances.freeInUSDT;
+      }      
+
+      if (document.getElementById(`o-bal-usdt-${symbol}`)) {
+        document.getElementById(`o-bal-usdt-${symbol}`).textContent = balances.onOrderInUSDT;
+      }      
+    });
+  }
+
 
   // Fetch and update prices every second
   setInterval(async () => {
-    try {
-      function updateChange(symbol, seconds) {
-        // Update the price history for the last minute
-        if (priceHistory[symbol].length >= seconds) {
-          // Calculate percentage change
-          const priceChange = (
-            (priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - seconds]) 
-            / priceHistory[symbol][priceHistory[symbol].length - seconds] * 100
-          ).toFixed(2);
-          document.getElementById(`change-${seconds}-${symbol}`).textContent = `${priceChange}`;
-        } else {
-          document.getElementById(`change-${seconds}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
-        }  
-      }
-
+    try {    
       const response = await fetch(apiUrl);
       let data = await response.json();      
 
@@ -182,7 +213,8 @@ const runMonitoring = async () => {
         if (priceHistory[symbol].length >= 60 * 60) {
           priceHistory[symbol].shift();
         }        
-      });
+      });     
+      await updateBalances();
     } catch (error) {
       console.error('Error fetching data:', error);
     }

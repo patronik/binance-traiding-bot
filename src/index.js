@@ -31,6 +31,48 @@ app.get('/change', (req, res) => {
   res.sendFile('change.html', { root: __dirname + '/../public' });
 });
 
+// Express endpoint to fetch and return non-zero spot wallet balances for USDT market symbols
+app.get('/balances', async (req, res) => {
+
+  try {
+    // Fetch account information
+    const balanceInfo = await binance.balance();    
+
+    // Fetch latest prices for all USDT market symbols
+    const prices = await binance.prices();
+
+    const balances = {};
+    // Prepare response data
+    Object.entries(balanceInfo).forEach(([asset, balanceObject]) => {
+      const symbol = `${asset}USDT`;
+
+      // Skip if not in USDT market
+      if (!prices[symbol] && asset !== 'USDT') return null; 
+
+      const freeBalance = parseFloat(balanceObject.available);
+      const onOrderBalance = parseFloat(balanceObject.onOrder);
+
+      // Calculate value in USDT if a price is available
+      const price = prices[symbol] ? parseFloat(prices[symbol]) : 1; // Use 1 for USDT itself
+      const freeInUSDT = price * freeBalance;
+      const onOrderInUSDT = price * onOrderBalance;
+
+      balances[symbol] = {
+        freeBalance: freeBalance.toFixed(8),
+        onOrderBalance: onOrderBalance.toFixed(8),
+        freeInUSDT: freeInUSDT.toFixed(8),
+        onOrderInUSDT: onOrderInUSDT.toFixed(2)
+      };      
+    });
+
+    // Send response
+    res.json({ success: true, balances });
+  } catch (error) {
+    console.error('Error fetching spot wallet balances:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Function to get the entire USDT balance
 async function getUSDTBalance() {
   try {
