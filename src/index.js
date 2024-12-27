@@ -59,10 +59,10 @@ app.get('/balances', async (req, res) => {
       const onOrderInUSDT = price * onOrderBalance;
 
       balances[symbol] = {
-        freeBalance: freeBalance.toFixed(8),
-        onOrderBalance: onOrderBalance.toFixed(8),
-        freeInUSDT: freeInUSDT.toFixed(8),
-        onOrderInUSDT: onOrderInUSDT.toFixed(2)
+        freeBalance: freeBalance.toFixed(10),
+        onOrderBalance: onOrderBalance.toFixed(10),
+        freeInUSDT: freeInUSDT.toFixed(10),
+        onOrderInUSDT: onOrderInUSDT.toFixed(10)
       };      
     });
 
