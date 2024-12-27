@@ -3,6 +3,7 @@ require('dotenv').config(); // Load environment variables from .env
 const express = require('express');
 const Binance = require('node-binance-api');
 const cors = require('cors');
+const axios = require('axios');
 
 const app = express();
 const PORT = 3000;
@@ -70,6 +71,55 @@ app.get('/balances', async (req, res) => {
   } catch (error) {
     console.error('Error fetching spot wallet balances:', error.message);
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/**
+ * GET /precision/:symbol
+ * Retrieves the maximum precision for a given trading pair on Binance.
+ * @param {string} symbol - The trading pair symbol (e.g., BTCUSDT).
+ */
+app.get('/precision/:symbol', async (req, res) => {
+  const { symbol } = req.params;
+
+  try {
+      // Fetch exchange information from Binance API
+      const response = await axios.get('https://api.binance.com/api/v3/exchangeInfo');
+
+      // Find the requested symbol in the response
+      const pairInfo = response.data.symbols.find(pair => pair.symbol === symbol.toUpperCase());
+
+      if (!pairInfo) {
+          return res.status(404).json({
+              error: `Symbol ${symbol} not found on Binance.`
+          });
+      }
+
+      // Extract precision details from the filters
+      const priceFilter = pairInfo.filters.find(filter => filter.filterType === 'PRICE_FILTER');
+      const lotSizeFilter = pairInfo.filters.find(filter => filter.filterType === 'LOT_SIZE');
+
+      if (!priceFilter || !lotSizeFilter) {
+          return res.status(500).json({
+              error: `Unable to retrieve precision details for ${symbol}.`
+          });
+      }
+
+      // Prepare the precision information
+      const precisionDetails = {
+          symbol: pairInfo.symbol,
+          baseAsset: pairInfo.baseAsset,
+          quoteAsset: pairInfo.quoteAsset,
+          pricePrecision: priceFilter.tickSize,
+          quantityPrecision: lotSizeFilter.stepSize,
+      };
+
+      return res.status(200).json(precisionDetails);
+  } catch (error) {
+      console.error('Error fetching exchange info:', error.message);
+      return res.status(500).json({
+          error: 'Failed to fetch precision details from Binance.',
+      });
   }
 });
 

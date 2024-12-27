@@ -21,11 +21,11 @@
   </head>
 <body>
   <div id="admin-panel">       
-    <label for="buyPercent">
-      Buy <input type="number" id="buyPercent" style="width: 50px;" step="10" max="100" min="10" value="100">%        
+    <label>
+      Buy for <input type="number" id="USDTPercent" style="width: 50px;" step="10" max="100" min="10" value="100">% of USDT        
     </label>
-    <label for="buyFixedUSDT">
-      Buy for fixed <input type="number" id="buyFixedUSDT" style="width: 50px;" value="1000"> USDT       
+    <label>
+      Buy for fixed <input type="number" id="fixedUSDT" style="width: 50px;" value="1000"> USDT       
     </label>
     <label for="updateRate">
       Update rate
@@ -58,16 +58,31 @@
     return newAmount;
   }
 
+  async function getSymbolQtyPrecision(symbol) {
+    const response = await fetch(`/precision/${symbol}`);
+    const data = await response.json(); 
+    return data.quantityPrecision;
+  }
 
   async function sellAmount(symbol) {
     let amount = parseFloat(document.getElementById(`f-bal-${symbol}`).textContent);
     if (isNaN(amount)) {
       alert('Invalid asset amount.');  
+      return;
     }
-    
-    amount = subtractPercentage(amount, feePercent);
 
-    const confirmation = confirm(`Are you sure you want to sell ${amount} of ${symbol}?`);
+    const assetPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
+    if (isNaN(assetPrice)) {
+      alert(`Invalid asset price ${assetPrice}.`);  
+      return;
+    }  
+
+    const qtyPrecision = await getSymbolQtyPrecision(symbol);
+    amount.toFixed(qtyPrecision);
+        
+    amount = subtractPercentage(amount, feePercent);    
+
+    const confirmation = confirm(`Are you sure you want to sell ${amount} of ${symbol} (${assetPrice * amount} USDT)?`);
 
     if (confirmation) {
       try {
@@ -78,32 +93,37 @@
         });
         const data = await response.json();
         alert(`Sell Response: ${JSON.stringify(data)}`);
-        await updateInfo();
       } catch (error) {
         alert('Error placing sell order:', error);
       }
     }
   }
 
-  async function buyForFixed(symbol) {
-    const buyFixedUSDT = parseFloat(document.getElementById(`buyFixedUSDT`).value);
-    if (isNaN(buyFixedUSDT)) {
-      alert(`Invalid fixed USDT amount ${buyFixedUSDT}.`);  
+  async function buyForFixedUSDT(symbol) {
+    const fixedUSDT = parseFloat(document.getElementById(`fixedUSDT`).value);
+    if (isNaN(fixedUSDT)) {
+      alert(`Invalid fixed USDT amount ${fixedUSDT}.`);  
+      return;
     }    
 
     const assetPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
     if (isNaN(assetPrice)) {
       alert(`Invalid asset price ${assetPrice}.`);  
+      return;
     }    
         
-    let amount = parseFloat(buyFixedUSDT / assetPrice);
+    let amount = parseFloat(fixedUSDT / assetPrice);
     if (isNaN(amount)) {
       alert(`Invalid amount to buy ${amount}.`);  
+      return;
     }
+
+    const qtyPrecision = await getSymbolQtyPrecision(symbol);
+    amount.toFixed(qtyPrecision);
 
     amount = subtractPercentage(amount, feePercent);
 
-    const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (${buyFixedUSDT} in USDT)?`);
+    const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (for ${fixedUSDT} USDT)?`);
 
     if (confirmation) {
       try {
@@ -114,32 +134,43 @@
         });
         const data = await response.json();
         alert(`Buy Response: ${JSON.stringify(data)}`);
-        await updateInfo();
       } catch (error) {
         alert('Error placing buy order:', error);
       }
     }
   }
 
-  async function buyPercent(symbol) {
-    let amount = parseFloat(document.getElementById(`f-bal-${symbol}`).textContent);
+  async function buyUSDTPercent(symbol) {
+    const USDTPercent = parseFloat(document.getElementById(`USDTPercent`).value);
+    if (isNaN(USDTPercent)) {
+      alert(`Invalid buy percent ${USDTPercent}.`); 
+      return;
+    }
+
+    const USDTBal = parseFloat(document.getElementById(`usdt-bal`).textContent);
+    if (isNaN(USDTBal)) {
+      alert(`Invalid USDT balance ${USDTBal}.`);  
+      return;
+    }    
+
+    const assetPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
+    if (isNaN(assetPrice)) {
+      alert(`Invalid asset price ${assetPrice}.`);  
+      return;
+    }    
+        
+    let amount = parseFloat((USDTBal / 100 * USDTPercent) / assetPrice);
     if (isNaN(amount)) {
-      alert('Invalid asset amount.');  
+      alert(`Invalid amount to buy ${amount}.`);  
+      return;
     }
 
-    const buyPercent = parseFloat(document.getElementById(`buyPercent`).value);
-    if (isNaN(buyPercent)) {
-      alert('Invalid buy percent.');  
-    }
+    const qtyPrecision = await getSymbolQtyPrecision(symbol);
+    amount.toFixed(qtyPrecision);
     
-    amount = subtractPercentage(
-      amount, 
-      (buyPercent < 100 && buyPercent > feePercent)  
-      ? (100 - buyPercent) 
-      : feePercent
-    );
+    amount = subtractPercentage(amount, feePercent);
 
-    const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (${buyPercent}% of USDT)?`);
+    const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (for ${USDTPercent}% USDT)?`);
 
     if (confirmation) {
       try {
@@ -150,7 +181,6 @@
         });
         const data = await response.json();
         alert(`Buy Response: ${JSON.stringify(data)}`);
-        await updateInfo();
       } catch (error) {
         alert('Error placing buy order:', error);
       }
@@ -204,8 +234,8 @@
             <th id="f-bal-usdt-${symbol}"></th>
             <th id="o-bal-${symbol}"></th>            
             <th id="o-bal-usdt-${symbol}"></th>
-            <th><input type="button" value="Buy percent of USDT" onclick="buyPercent('${symbol}');" /></th>
-            <th><input type="button" value="Buy for fixed USDT" onclick="buyForFixed('${symbol}');" /></th>
+            <th><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></th>
+            <th><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></th>
             <th><input type="button" value="Sell all" onclick="sellAmount('${symbol}');" /></th>
             <td id="change-${60}-${symbol}">--</td>
             <td id="change-${60 * 3}-${symbol}">--</td>
@@ -223,7 +253,7 @@
     const table = document.getElementById("priceTable");
     const tbody = table.querySelector("tbody");
     const rows = Array.from(tbody.rows);
-    const sortColumnIndex = 8;
+    const sortColumnIndex = 9;
 
     // Analyze and style cells before sorting
     rows.forEach(row => {
@@ -289,23 +319,28 @@
 
     Object.entries(data.balances).forEach(([symbol, balances]) => {
       if (document.getElementById(`f-bal-${symbol}`)) {
-        document.getElementById(`f-bal-${symbol}`).textContent = balances.freeBalance;
+        document.getElementById(`f-bal-${symbol}`).textContent 
+        = balances.freeBalance;
       }      
 
       if (document.getElementById(`o-bal-${symbol}`)) {
-        document.getElementById(`o-bal-${symbol}`).textContent = balances.onOrderBalance;
+        document.getElementById(`o-bal-${symbol}`).textContent 
+        = balances.onOrderBalance;
       }      
 
       if (document.getElementById(`f-bal-usdt-${symbol}`)) {
-        document.getElementById(`f-bal-usdt-${symbol}`).textContent = balances.freeInUSDT;
+        document.getElementById(`f-bal-usdt-${symbol}`).textContent 
+        = balances.freeInUSDT;
       }      
 
       if (document.getElementById(`o-bal-usdt-${symbol}`)) {
-        document.getElementById(`o-bal-usdt-${symbol}`).textContent = balances.onOrderInUSDT;
+        document.getElementById(`o-bal-usdt-${symbol}`).textContent 
+        = balances.onOrderInUSDT;
       }      
 
       if (symbol == 'USDTUSDT') {
-        document.getElementById(`usdt-bal`).textContent = parseFloat(balances.freeBalance).toFixed(2);
+        document.getElementById(`usdt-bal`).textContent 
+        = parseFloat(balances.freeBalance).toFixed(2);
       }
     });
   }
