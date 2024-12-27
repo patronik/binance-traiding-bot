@@ -13,13 +13,22 @@
       }
       th {
         background-color: #f2f2f2;
+      }      
+      #admin-panel label {
+        padding: 0px 10px 0px 10px;
       }
     </style>
   </head>
 <body>
-  <div>
+  <div id="admin-panel">       
+    <label for="buyPercent">
+      Buy <input type="number" id="buyPercent" style="width: 50px;" step="10" max="100" min="10" value="100">%        
+    </label>
+    <label for="buyFixedUSDT">
+      Buy for fixed <input type="number" id="buyFixedUSDT" style="width: 50px;" value="1000"> USDT       
+    </label>
     <label for="updateRate">
-      Update data every 
+      Update rate
       <select id="updateRate">
         <option value="1">1</option>
         <option value="5">5</option>
@@ -29,6 +38,9 @@
         <option value="60">60</option>
       </select> seconds.
     </label>
+    <label>
+      USDT bal. <span id="usdt-bal"></span>
+    </label> 
   </div>  
   <div id="hiddenContainer" style="display:none;">
   </div>
@@ -39,13 +51,119 @@
 </body>
 </html>
 <script>
-const runMonitoring = async () => {
-  const symbols = await (async () => { 
-    const response = await fetch('/change-symbols', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-    });
-    return await response.json();
+  const feePercent = 0.2;  
+  function subtractPercentage(amount, percentage) {
+    const reduction = (amount * percentage) / 100;
+    const newAmount  = amount - reduction;
+    return newAmount;
+  }
+
+
+  async function sellAmount(symbol) {
+    let amount = parseFloat(document.getElementById(`f-bal-${symbol}`).textContent);
+    if (isNaN(amount)) {
+      alert('Invalid asset amount.');  
+    }
+    
+    amount = subtractPercentage(amount, feePercent);
+
+    const confirmation = confirm(`Are you sure you want to sell ${amount} of ${symbol}?`);
+
+    if (confirmation) {
+      try {
+        const response = await fetch('/sell-symbol', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, symbol })
+        });
+        const data = await response.json();
+        alert(`Sell Response: ${JSON.stringify(data)}`);
+        await updateInfo();
+      } catch (error) {
+        alert('Error placing sell order:', error);
+      }
+    }
+  }
+
+  async function buyForFixed(symbol) {
+    const buyFixedUSDT = parseFloat(document.getElementById(`buyFixedUSDT`).value);
+    if (isNaN(buyFixedUSDT)) {
+      alert(`Invalid fixed USDT amount ${buyFixedUSDT}.`);  
+    }    
+
+    const assetPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
+    if (isNaN(assetPrice)) {
+      alert(`Invalid asset price ${assetPrice}.`);  
+    }    
+        
+    let amount = parseFloat(buyFixedUSDT / assetPrice);
+    if (isNaN(amount)) {
+      alert(`Invalid amount to buy ${amount}.`);  
+    }
+
+    amount = subtractPercentage(amount, feePercent);
+
+    const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (${buyFixedUSDT} in USDT)?`);
+
+    if (confirmation) {
+      try {
+        const response = await fetch('/buy-symbol', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, symbol })
+        });
+        const data = await response.json();
+        alert(`Buy Response: ${JSON.stringify(data)}`);
+        await updateInfo();
+      } catch (error) {
+        alert('Error placing buy order:', error);
+      }
+    }
+  }
+
+  async function buyPercent(symbol) {
+    let amount = parseFloat(document.getElementById(`f-bal-${symbol}`).textContent);
+    if (isNaN(amount)) {
+      alert('Invalid asset amount.');  
+    }
+
+    const buyPercent = parseFloat(document.getElementById(`buyPercent`).value);
+    if (isNaN(buyPercent)) {
+      alert('Invalid buy percent.');  
+    }
+    
+    amount = subtractPercentage(
+      amount, 
+      (buyPercent < 100 && buyPercent > feePercent)  
+      ? (100 - buyPercent) 
+      : feePercent
+    );
+
+    const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (${buyPercent}% of USDT)?`);
+
+    if (confirmation) {
+      try {
+        const response = await fetch('/buy-symbol', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, symbol })
+        });
+        const data = await response.json();
+        alert(`Buy Response: ${JSON.stringify(data)}`);
+        await updateInfo();
+      } catch (error) {
+        alert('Error placing buy order:', error);
+      }
+    }
+  }
+  
+  const runMonitoring = async () => {
+    const symbols = await (async () => { 
+      const response = await fetch('/change-symbols', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+      });
+      return await response.json();
   })();
 
   // Define the symbols to fetch
@@ -63,9 +181,12 @@ const runMonitoring = async () => {
           <th>Symbol</th>
           <th>Current Price (USDT)</th>
           <th>F bal.</th>
-          <th>O bal.</th>
           <th>F bal. in USDT</th>
+          <th>O bal.</th>          
           <th>O bal. in USDT</th>
+          <th>Buy percent of USDT.</th>
+          <th>Buy for fixed USDT.</th>
+          <th>Sell all.</th>
           <th data-sort="number">Change (1 minute %)</th>
           <th data-sort="number">Change (3 minutes %)</th>
           <th data-sort="number">Change (5 minutes %)</th>
@@ -80,9 +201,12 @@ const runMonitoring = async () => {
             <td><a href="https://www.binance.com/uk-UA/trade/${symbol.replace('USDT', '_USDT')}?_from=markets&type=spot" target="_blank">${symbol}</a></td>
             <td id="price-${symbol}">--</td>
             <th id="f-bal-${symbol}"></th>
-            <th id="o-bal-${symbol}"></th>
             <th id="f-bal-usdt-${symbol}"></th>
+            <th id="o-bal-${symbol}"></th>            
             <th id="o-bal-usdt-${symbol}"></th>
+            <th><input type="button" value="Buy percent of USDT" onclick="buyPercent('${symbol}');" /></th>
+            <th><input type="button" value="Buy for fixed USDT" onclick="buyForFixed('${symbol}');" /></th>
+            <th><input type="button" value="Sell all" onclick="sellAmount('${symbol}');" /></th>
             <td id="change-${60}-${symbol}">--</td>
             <td id="change-${60 * 3}-${symbol}">--</td>
             <td id="change-${60 * 5}-${symbol}">--</td>
@@ -99,10 +223,11 @@ const runMonitoring = async () => {
     const table = document.getElementById("priceTable");
     const tbody = table.querySelector("tbody");
     const rows = Array.from(tbody.rows);
+    const sortColumnIndex = 8;
 
     // Analyze and style cells before sorting
     rows.forEach(row => {
-      for (let i = 6; i <= 20; i++) {
+      for (let i = sortColumnIndex; i <= 20; i++) {
         if(typeof row.cells[i] === 'undefined') {
             continue;
         }
@@ -127,8 +252,8 @@ const runMonitoring = async () => {
 
     // Sort the rows
     rows.sort((rowA, rowB) => {
-        const changeA = parseFloat(rowA.cells[6].textContent.trim());
-        const changeB = parseFloat(rowB.cells[6].textContent.trim());
+        const changeA = parseFloat(rowA.cells[sortColumnIndex].textContent.trim());
+        const changeB = parseFloat(rowB.cells[sortColumnIndex].textContent.trim());
         return changeB - changeA; // Descending order
     });
 
@@ -154,7 +279,7 @@ const runMonitoring = async () => {
       ).toFixed(2);
       document.getElementById(`change-${seconds}-${symbol}`).textContent = `${priceChange}`;
     } else {
-      document.getElementById(`change-${seconds}-${symbol}`).textContent = `Collecting data ... (${priceHistory[symbol].length})`;
+      document.getElementById(`change-${seconds}-${symbol}`).textContent = `Collecting ... (${priceHistory[symbol].length})`;
     }  
   }
 
@@ -178,6 +303,10 @@ const runMonitoring = async () => {
       if (document.getElementById(`o-bal-usdt-${symbol}`)) {
         document.getElementById(`o-bal-usdt-${symbol}`).textContent = balances.onOrderInUSDT;
       }      
+
+      if (symbol == 'USDTUSDT') {
+        document.getElementById(`usdt-bal`).textContent = parseFloat(balances.freeBalance).toFixed(2);
+      }
     });
   }
 

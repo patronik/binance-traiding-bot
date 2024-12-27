@@ -96,10 +96,10 @@ async function getBTCBalance() {
 }
 
 // Function to buy BTC
-async function buyBTCAmount(amount) {
+async function buyAmount(symbol, amount) {
   if (amount > 0) {
     try {
-      const result = await binance.marketBuy('BTCUSDT', amount);
+      const result = await binance.marketBuy(symbol, amount);
       return result;
     } catch (error) {
       console.error('Error placing buy order:', error);
@@ -111,10 +111,10 @@ async function buyBTCAmount(amount) {
 }
 
 // Function to sell BTC
-async function sellBTCAmount(amount) {
+async function sellAmount(symbol, amount) {
   if (amount > 0) {
     try {
-      const result = await binance.marketSell('BTCUSDT', amount);
+      const result = await binance.marketSell(symbol, amount);
       return result;
     } catch (error) {
       console.error('Error placing sell order:', error);
@@ -124,6 +124,22 @@ async function sellBTCAmount(amount) {
     return { error: 'Invalid amount to sell.' };
   }
 }
+
+// Endpoint to buy BTC
+app.post('/buy-symbol', async (req, res) => {
+  console.log('Request Body:', req.body); // Log the request body
+  const { amount, symbol } = req.body;
+  const response = await buyAmount(symbol, parseFloat(amount));
+  res.json(response);
+});
+
+// Endpoint to sell BTC
+app.post('/sell-symbol', async (req, res) => {
+  console.log('Request Body:', req.body); // Log the request body
+  const { amount, symbol } = req.body;
+  const response = await sellAmount(symbol, parseFloat(amount));
+  res.json(response);
+});
 
 // Endpoint to check USDT balance
 app.get('/balance/usdt', async (req, res) => {
@@ -141,7 +157,7 @@ app.get('/balance/btc', async (req, res) => {
 app.post('/buy-btc', async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body
   const { amount } = req.body;
-  const response = await buyBTCAmount(parseFloat(amount));
+  const response = await buyAmount('BTCUSDT', parseFloat(amount));
   res.json(response);
 });
 
@@ -149,7 +165,7 @@ app.post('/buy-btc', async (req, res) => {
 app.post('/sell-btc', async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body
   const { amount } = req.body;
-  const response = await sellBTCAmount(parseFloat(amount));
+  const response = await sellAmount('BTCUSDT', parseFloat(amount));
   res.json(response);
 });
 
