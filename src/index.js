@@ -98,8 +98,9 @@ app.get('/precision/:symbol', async (req, res) => {
       // Extract precision details from the filters
       const priceFilter = pairInfo.filters.find(filter => filter.filterType === 'PRICE_FILTER');
       const lotSizeFilter = pairInfo.filters.find(filter => filter.filterType === 'LOT_SIZE');
+      const notionalFilter = pairInfo.filters.find(filter => filter.filterType === 'NOTIONAL');
 
-      if (!priceFilter || !lotSizeFilter) {
+      if (!priceFilter || !lotSizeFilter || !notionalFilter) {
           return res.status(500).json({
               error: `Unable to retrieve precision details for ${symbol}.`
           });
@@ -112,6 +113,7 @@ app.get('/precision/:symbol', async (req, res) => {
           quoteAsset: pairInfo.quoteAsset,
           pricePrecision: priceFilter.tickSize,
           qtyPrecision: lotSizeFilter.stepSize,
+          minNotional: notionalFilter.minNotional,
       };
 
       return res.status(200).json(precisionDetails);

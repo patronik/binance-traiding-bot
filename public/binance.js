@@ -9,16 +9,20 @@ async function getSymbolPrecision(symbol) {
     const response = await fetch(`/precision/${symbol}`);
     const data = await response.json(); 
 
-    const result = {qty: 0, price: 0};
-    
+    const result = {
+        qtyPrecision: 0, 
+        pricePrecision: 0, 
+        minNot: parseFloat(data.minNotional)
+    };
+
     let qtyPrecisionParts = parseFloat(data.qtyPrecision).toString().split('.');
     if (qtyPrecisionParts.length == 2) {
-        result['qty'] = qtyPrecisionParts[1].length;
+        result['qtyPrecision'] = qtyPrecisionParts[1].length;
     } 
 
     let pricePrecisionParts = parseFloat(data.pricePrecision).toString().split('.');
     if (pricePrecisionParts.length == 2) {
-        result['price'] = pricePrecisionParts[1].length;
+        result['pricePrecision'] = pricePrecisionParts[1].length;
     } 
 
     return result;
@@ -40,9 +44,14 @@ async function sellAll(symbol) {
     symbolTotalAmount = subtractPercentage(symbolTotalAmount, feePercent);    
 
     const precision = await getSymbolPrecision(symbol);
-    symbolTotalAmount = symbolTotalAmount.toFixed(precision.qty);
+    symbolTotalAmount = symbolTotalAmount.toFixed(precision.qtyPrecision);
 
     const USDTAmount = (assetUSDTPrice * symbolTotalAmount).toFixed(2);
+    if (USDTAmount < precision.minNot) {
+        alert(`Order amount ${USDTAmount} is less than min value ${precision.minNot}.`);  
+        return;
+    }
+
     const confirmation = confirm(`Do you confirm selling ${symbolTotalAmount} of ${symbol} (${USDTAmount} USDT)?`);
 
     if (confirmation) {
@@ -82,7 +91,12 @@ async function buyForFixedUSDT(symbol) {
     buyAmount = subtractPercentage(buyAmount, feePercent);
 
     const precision = await getSymbolPrecision(symbol);
-    buyAmount = buyAmount.toFixed(precision.qty);
+    buyAmount = buyAmount.toFixed(precision.qtyPrecision);
+
+    if (fixedUSDT < precision.minNot) {
+        alert(`Order amount ${fixedUSDT} is less than min value ${precision.minNot}.`);  
+        return;
+    }
 
     const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} (for ${fixedUSDT} USDT)?`);
 
@@ -119,19 +133,24 @@ async function buyUSDTPercent(symbol) {
         alert(`Invalid asset price ${assetUSDTPrice}.`);  
         return;
     }    
-        
-    let buyAmount = parseFloat((USDTBal / 100 * USDTPercent) / assetUSDTPrice);
+    
+    const USDTAmount = (USDTBal / 100 * USDTPercent);
+    let buyAmount = parseFloat(USDTAmount / assetUSDTPrice);
     if (isNaN(buyAmount)) {
         alert(`Invalid amount to buy ${buyAmount}.`);  
         return;
     }    
 
-    buyAmount = subtractPercentage(buyAmount, feePercent);
-
     const precision = await getSymbolPrecision(symbol);
-    buyAmount = buyAmount.toFixed(precision.qty);
+    if (USDTAmount < precision.minNot) {
+        alert(`Order amount ${USDTAmount} is less than min value ${precision.minNot}.`);  
+        return;
+    }
 
-    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} (for ${USDTPercent}% USDT)?`);
+    buyAmount = subtractPercentage(buyAmount, feePercent);
+    buyAmount = buyAmount.toFixed(precision.qtyPrecision);
+
+    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} (for ${USDTAmount} USDT)?`);
 
     if (confirmation) {
         try {
