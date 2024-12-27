@@ -174,7 +174,7 @@
       ).toFixed(2);
       document.getElementById(`change-${seconds}-${symbol}`).textContent = `${priceChange}`;
     } else {
-      document.getElementById(`change-${seconds}-${symbol}`).textContent = `${priceHistory[symbol].length}`;
+      document.getElementById(`change-${seconds}-${symbol}`).textContent = `(${priceHistory[symbol].length})`;
     }  
   }
 
