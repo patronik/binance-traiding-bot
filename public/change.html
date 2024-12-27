@@ -58,10 +58,13 @@
     return newAmount;
   }
 
-  async function getSymbolQtyPrecision(symbol) {
+  async function getSymbolPrecision(symbol) {
     const response = await fetch(`/precision/${symbol}`);
     const data = await response.json(); 
-    return parseFloat(data.quantityPrecision).toString().split('.')[1].length
+    return {
+      qty: parseFloat(data.quantityPrecision).toString().split('.')[1].length,
+      price: parseFloat(data.pricePrecision).toString().split('.')[1].length,
+    };
   }
 
   async function sellAmount(symbol) {
@@ -79,8 +82,8 @@
         
     amount = subtractPercentage(amount, feePercent);    
     
-    const qtyPrecision = await getSymbolQtyPrecision(symbol);
-    amount = amount.toFixed(qtyPrecision);
+    const precision = await getSymbolPrecision(symbol);
+    amount = amount.toFixed(precision.qty);
 
     const confirmation = confirm(`Are you sure you want to sell ${amount} of ${symbol} (${assetPrice * amount} USDT)?`);
 
@@ -120,8 +123,8 @@
 
     amount = subtractPercentage(amount, feePercent);
     
-    const qtyPrecision = await getSymbolQtyPrecision(symbol);
-    amount = amount.toFixed(qtyPrecision);
+    const precision = await getSymbolPrecision(symbol);
+    amount = amount.toFixed(precision.qty);
 
     const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (for ${fixedUSDT} USDT)?`);
 
@@ -167,8 +170,8 @@
     
     amount = subtractPercentage(amount, feePercent);
 
-    const qtyPrecision = await getSymbolQtyPrecision(symbol);
-    amount = amount.toFixed(qtyPrecision);
+    const precision = await getSymbolPrecision(symbol);
+    amount = amount.toFixed(precision.qty);
 
     const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (for ${USDTPercent}% USDT)?`);
 
