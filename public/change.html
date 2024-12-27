@@ -85,8 +85,9 @@
     const precision = await getSymbolPrecision(symbol);
     symbolTotalAmount = symbolTotalAmount.toFixed(precision.qty);
 
+    const USDTAmount = (assetUSDTPrice * symbolTotalAmount).toFixed(2);
     const confirmation = confirm(
-      `Are you sure you want to sell ${symbolTotalAmount} of ${symbol} (${assetUSDTPrice * symbolTotalAmount} USDT)?`
+      `Are you sure you want to sell ${symbolTotalAmount} of ${symbol} (${USDTAmount} USDT)?`
     );
 
     if (confirmation) {
