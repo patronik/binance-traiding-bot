@@ -75,12 +75,12 @@
     if (isNaN(assetPrice)) {
       alert(`Invalid asset price ${assetPrice}.`);  
       return;
-    }  
-
-    const qtyPrecision = await getSymbolQtyPrecision(symbol);
-    amount.toFixed(qtyPrecision);
+    }     
         
     amount = subtractPercentage(amount, feePercent);    
+    
+    const qtyPrecision = await getSymbolQtyPrecision(symbol);
+    amount = amount.toFixed(qtyPrecision);
 
     const confirmation = confirm(`Are you sure you want to sell ${amount} of ${symbol} (${assetPrice * amount} USDT)?`);
 
@@ -116,12 +116,12 @@
     if (isNaN(amount)) {
       alert(`Invalid amount to buy ${amount}.`);  
       return;
-    }
-
-    const qtyPrecision = await getSymbolQtyPrecision(symbol);
-    amount.toFixed(qtyPrecision);
+    }    
 
     amount = subtractPercentage(amount, feePercent);
+    
+    const qtyPrecision = await getSymbolQtyPrecision(symbol);
+    amount = amount.toFixed(qtyPrecision);
 
     const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (for ${fixedUSDT} USDT)?`);
 
@@ -163,12 +163,12 @@
     if (isNaN(amount)) {
       alert(`Invalid amount to buy ${amount}.`);  
       return;
-    }
-
-    const qtyPrecision = await getSymbolQtyPrecision(symbol);
-    amount.toFixed(qtyPrecision);
+    }    
     
     amount = subtractPercentage(amount, feePercent);
+
+    const qtyPrecision = await getSymbolQtyPrecision(symbol);
+    amount = amount.toFixed(qtyPrecision);
 
     const confirmation = confirm(`Are you sure you want to buy ${amount} of ${symbol} (for ${USDTPercent}% USDT)?`);
 
