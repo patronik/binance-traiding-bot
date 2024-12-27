@@ -8,10 +8,20 @@ function subtractPercentage(amount, percentage) {
 async function getSymbolPrecision(symbol) {
     const response = await fetch(`/precision/${symbol}`);
     const data = await response.json(); 
-    return {
-        qty: parseFloat(data.quantityPrecision).toString().split('.')[1].length,
-        price: parseFloat(data.pricePrecision).toString().split('.')[1].length,
-    };
+
+    const result = {qty: 0, price: 0};
+    
+    let qtyPrecisionParts = parseFloat(data.qtyPrecision).toString().split('.');
+    if (qtyPrecisionParts.length == 2) {
+        result['qty'] = qtyPrecisionParts[1].length;
+    } 
+
+    let pricePrecisionParts = parseFloat(data.pricePrecision).toString().split('.');
+    if (pricePrecisionParts.length == 2) {
+        result['price'] = pricePrecisionParts[1].length;
+    } 
+
+    return result;
 }
 
 async function sellAll(symbol) {

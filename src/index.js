@@ -111,7 +111,7 @@ app.get('/precision/:symbol', async (req, res) => {
           baseAsset: pairInfo.baseAsset,
           quoteAsset: pairInfo.quoteAsset,
           pricePrecision: priceFilter.tickSize,
-          quantityPrecision: lotSizeFilter.stepSize,
+          qtyPrecision: lotSizeFilter.stepSize,
       };
 
       return res.status(200).json(precisionDetails);
