@@ -61,7 +61,7 @@
   async function getSymbolQtyPrecision(symbol) {
     const response = await fetch(`/precision/${symbol}`);
     const data = await response.json(); 
-    return data.quantityPrecision.split('.')[1].length;
+    return parseFloat(data.quantityPrecision).toString().split('.')[1].length
   }
 
   async function sellAmount(symbol) {
