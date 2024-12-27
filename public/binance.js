@@ -33,9 +33,7 @@ async function sellAll(symbol) {
     symbolTotalAmount = symbolTotalAmount.toFixed(precision.qty);
 
     const USDTAmount = (assetUSDTPrice * symbolTotalAmount).toFixed(2);
-    const confirmation = confirm(
-        `Are you sure you want to sell ${symbolTotalAmount} of ${symbol} (${USDTAmount} USDT)?`
-    );
+    const confirmation = confirm(`Do you confirm selling ${symbolTotalAmount} of ${symbol} (${USDTAmount} USDT)?`);
 
     if (confirmation) {
         try {
@@ -76,7 +74,7 @@ async function buyForFixedUSDT(symbol) {
     const precision = await getSymbolPrecision(symbol);
     buyAmount = buyAmount.toFixed(precision.qty);
 
-    const confirmation = confirm(`Are you sure you want to buy ${buyAmount} of ${symbol} (for ${fixedUSDT} USDT)?`);
+    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} (for ${fixedUSDT} USDT)?`);
 
     if (confirmation) {
         try {
@@ -123,7 +121,7 @@ async function buyUSDTPercent(symbol) {
     const precision = await getSymbolPrecision(symbol);
     buyAmount = buyAmount.toFixed(precision.qty);
 
-    const confirmation = confirm(`Are you sure you want to buy ${buyAmount} of ${symbol} (for ${USDTPercent}% USDT)?`);
+    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} (for ${USDTPercent}% USDT)?`);
 
     if (confirmation) {
         try {
