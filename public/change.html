@@ -46,13 +46,15 @@
       Sort by <select id="sortBy">
         <option value="1">Price (USDT)</option>
         <option value="2">Free bal.</option>
-        <option value="3">Order bal.</option>
-        <option value="7" selected>(1 minute %)</option>
-        <option value="8">(3 minutes %)</option>
-        <option value="9">(5 minutes %)</option>
-        <option value="10">(15 minutes %)</option>
-        <option value="11">(30 minutes %)</option>
-        <option value="12">(60 minutes %)</option>
+        <option value="3">Free bal. USDT</option>
+        <option value="4">Order bal.</option>
+        <option value="5">Order bal. USDT</option>
+        <option value="9" selected>(1 minute %)</option>
+        <option value="10">(3 minutes %)</option>
+        <option value="11">(5 minutes %)</option>
+        <option value="12">(15 minutes %)</option>
+        <option value="13">(30 minutes %)</option>
+        <option value="14">(60 minutes %)</option>
       </select>
     </label>
     <label>
@@ -94,8 +96,10 @@
         <tr>
           <th>Symbol</th>
           <th>Price (USDT)</th>
-          <th style="min-width: 220px;">Free bal.</th>
-          <th style="min-width: 220px;">Order bal.</th>          
+          <th>Free bal.</th>
+          <th>Free bal. USDT</th>
+          <th>Order bal.</th>    
+          <th>Order bal. USDT</th>       
           <th>Buy percent of USDT.</th>
           <th>Buy for fixed USDT.</th>
           <th>Sell all.</th>
@@ -112,12 +116,10 @@
           <tr id="row-${symbol}">
             <td><a href="https://www.binance.com/uk-UA/trade/${symbol.replace('USDT', '_USDT')}?_from=markets&type=spot" target="_blank">${symbol}</a></td>
             <td id="price-${symbol}">--</td>
-            <td>
-              <span id="f-bal-${symbol}"></span> (<span id="f-bal-usdt-${symbol}"></span> USDT)
-            </td>
-            <td>
-              <span id="o-bal-${symbol}"></span> (<span id="o-bal-usdt-${symbol}"></span> USDT)
-            </td>            
+            <td id="f-bal-${symbol}"></td>
+            <td id="f-bal-usdt-${symbol}"></td>
+            <td id="o-bal-${symbol}"></td>
+            <td id="o-bal-usdt-${symbol}"></td>            
             <td><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></td>
             <td><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></td>
             <td><input type="button" value="Sell all" onclick="sellAll('${symbol}');" /></td>
@@ -141,7 +143,7 @@
 
     // Analyze and style cells before sorting
     rows.forEach(row => {
-      for (let i = 7; i <= 20; i++) {
+      for (let i = 9; i <= 20; i++) {
         if(typeof row.cells[i] === 'undefined') {
             continue;
         }
