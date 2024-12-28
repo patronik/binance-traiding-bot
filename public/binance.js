@@ -1,4 +1,4 @@
-const feePercent = 0.2;  
+const binanceFeePercent = 0.2;  
 function subtractPercentage(amount, percentage) {
     const reduction = (amount * percentage) / 100;
     const newAmount  = amount - reduction;
@@ -58,7 +58,7 @@ async function sellAll(symbol) {
         return;
     }
 
-    symbolOrderAmount = subtractPercentage(symbolOrderAmount, feePercent);     
+    symbolOrderAmount = subtractPercentage(symbolOrderAmount, binanceFeePercent);     
         
     const precision = await getSymbolPrecision(symbol);
     symbolOrderAmount = roundOrderAmount(symbolOrderAmount, precision.qty);
@@ -75,7 +75,7 @@ async function sellAll(symbol) {
         return;
     }
 
-    const confirmation = confirm(`Do you confirm selling ${symbolOrderAmount} of ${symbol} (${USDTOrderAmount} USDT)?`);
+    const confirmation = confirm(`Do you confirm selling ${symbolOrderAmount} of ${symbol} fot ${USDTOrderAmount} USDT?`);
 
     if (confirmation) {
         try {
@@ -111,7 +111,7 @@ async function buyForFixedUSDT(symbol) {
         return;
     }    
 
-    buyAmount = subtractPercentage(buyAmount, feePercent);
+    buyAmount = subtractPercentage(buyAmount, binanceFeePercent);
 
     const precision = await getSymbolPrecision(symbol);
     buyAmount = roundOrderAmount(buyAmount, precision.qty);
@@ -121,7 +121,7 @@ async function buyForFixedUSDT(symbol) {
         return;
     }
 
-    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} (for ${fixedUSDT} USDT)?`);
+    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} for ${fixedUSDT} USDT?`);
 
     if (confirmation) {
         try {
@@ -170,10 +170,10 @@ async function buyUSDTPercent(symbol) {
         return;
     }
 
-    buyAmount = subtractPercentage(buyAmount, feePercent);
+    buyAmount = subtractPercentage(buyAmount, binanceFeePercent);
     buyAmount = roundOrderAmount(buyAmount, precision.qty);
 
-    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} (for ${USDTOrderAmount} USDT)?`);
+    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} for ${USDTOrderAmount} USDT?`);
 
     if (confirmation) {
         try {

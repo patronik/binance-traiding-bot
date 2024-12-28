@@ -75,10 +75,8 @@
         <tr>
           <th>Symbol</th>
           <th>Current Price (USDT)</th>
-          <th>F bal.</th>
-          <th>F bal. in USDT</th>
-          <th>O bal.</th>          
-          <th>O bal. in USDT</th>
+          <th style="min-width: 190px;">Free bal.</th>
+          <th style="min-width: 190px;">Order bal.</th>          
           <th>Buy percent of USDT.</th>
           <th>Buy for fixed USDT.</th>
           <th>Sell all.</th>
@@ -95,13 +93,15 @@
           <tr id="row-${symbol}">
             <td><a href="https://www.binance.com/uk-UA/trade/${symbol.replace('USDT', '_USDT')}?_from=markets&type=spot" target="_blank">${symbol}</a></td>
             <td id="price-${symbol}">--</td>
-            <th id="f-bal-${symbol}"></th>
-            <th id="f-bal-usdt-${symbol}"></th>
-            <th id="o-bal-${symbol}"></th>            
-            <th id="o-bal-usdt-${symbol}"></th>
-            <th><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></th>
-            <th><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></th>
-            <th><input type="button" value="Sell all" onclick="sellAll('${symbol}');" /></th>
+            <td>
+              <span id="f-bal-${symbol}"></span> (<span id="f-bal-usdt-${symbol}"></span> USDT)
+            </td>
+            <td>
+              <span id="o-bal-${symbol}"></span> (<span id="o-bal-usdt-${symbol}"></span> USDT)
+            </td>            
+            <td><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></td>
+            <td><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></td>
+            <td><input type="button" value="Sell all" onclick="sellAll('${symbol}');" /></td>
             <td id="change-${60}-${symbol}">--</td>
             <td id="change-${60 * 3}-${symbol}">--</td>
             <td id="change-${60 * 5}-${symbol}">--</td>
@@ -118,7 +118,7 @@
     const table = document.getElementById("priceTable");
     const tbody = table.querySelector("tbody");
     const rows = Array.from(tbody.rows);
-    const sortColumnIndex = 9;
+    const sortColumnIndex = 7;
 
     // Analyze and style cells before sorting
     rows.forEach(row => {
@@ -174,7 +174,7 @@
       ).toFixed(2);
       document.getElementById(`change-${seconds}-${symbol}`).textContent = `${priceChange}`;
     } else {
-      document.getElementById(`change-${seconds}-${symbol}`).textContent = `(${priceHistory[symbol].length})`;
+      document.getElementById(`change-${seconds}-${symbol}`).textContent = `...`;
     }  
   }
 
@@ -195,12 +195,12 @@
 
       if (document.getElementById(`f-bal-usdt-${symbol}`)) {
         document.getElementById(`f-bal-usdt-${symbol}`).textContent 
-        = balances.freeInUSDT;
+        = parseFloat(balances.freeInUSDT).toFixed(2);
       }      
 
       if (document.getElementById(`o-bal-usdt-${symbol}`)) {
         document.getElementById(`o-bal-usdt-${symbol}`).textContent 
-        = balances.onOrderInUSDT;
+        = parseFloat(balances.onOrderInUSDT).toFixed(2);
       }      
 
       if (symbol == 'USDTUSDT') {
