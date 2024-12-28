@@ -171,7 +171,7 @@ async function buyUSDTPercent(symbol) {
     }
 
     buyAmount = subtractPercentage(buyAmount, feePercent);
-    buyAmount = roundOrderAmount(buyAmount, precision.qtyPrecision);
+    buyAmount = roundOrderAmount(buyAmount, precision.qty);
 
     const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} (for ${USDTOrderAmount} USDT)?`);
 
