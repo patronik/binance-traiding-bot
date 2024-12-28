@@ -71,7 +71,7 @@ async function sellAll(symbol) {
 
     const USDTOrderAmount = assetUSDTPrice * symbolOrderAmount;
     if (USDTOrderAmount < precision.minNot) {
-        alert(`Order amount ${USDTOrderAmount} is less than min value ${precision.minNot}.`);  
+        alert(`Total order value ${USDTOrderAmount} USDT is less than min value ${precision.minNot} USDT.`);  
         return;
     }
 
@@ -116,8 +116,8 @@ async function buyForFixedUSDT(symbol) {
     const precision = await getSymbolPrecision(symbol);
     buyAmount = roundOrderAmount(buyAmount, precision.qty);
 
-    if (fixedUSDT < precision.minNot) {
-        alert(`Order amount ${fixedUSDT} is less than min value ${precision.minNot}.`);  
+    if (fixedUSDT < precision.minNot) {        
+        alert(`Total order value ${fixedUSDT} USDT is less than min value ${precision.minNot} USDT.`);  
         return;
     }
 
@@ -166,7 +166,7 @@ async function buyUSDTPercent(symbol) {
 
     const precision = await getSymbolPrecision(symbol);
     if (USDTOrderAmount < precision.minNot) {
-        alert(`Order amount ${USDTOrderAmount} is less than min value ${precision.minNot}.`);  
+        alert(`Total order value ${USDTOrderAmount} USDT is less than min value ${precision.minNot} USDT.`);  
         return;
     }
 
