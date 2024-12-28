@@ -42,6 +42,25 @@
     <label>
       USDT bal. <span id="usdt-bal"></span>
     </label> 
+    <label>
+      Sort by <select id="sortBy">
+        <option value="1">Price (USDT)</option>
+        <option value="2">Free bal.</option>
+        <option value="3">Order bal.</option>
+        <option value="7" selected>(1 minute %)</option>
+        <option value="8">(3 minutes %)</option>
+        <option value="9">(5 minutes %)</option>
+        <option value="10">(15 minutes %)</option>
+        <option value="11">(30 minutes %)</option>
+        <option value="12">(60 minutes %)</option>
+      </select>
+    </label>
+    <label>
+      Sort dir <select id="sortDir">
+        <option value="desc">DESC</option>
+        <option value="asc">ASC</option>
+      </select>
+    </label>
   </div>  
   <div id="hiddenContainer" style="display:none;">
   </div>
@@ -74,7 +93,7 @@
       <thead>
         <tr>
           <th>Symbol</th>
-          <th>Current Price (USDT)</th>
+          <th>Price (USDT)</th>
           <th style="min-width: 220px;">Free bal.</th>
           <th style="min-width: 220px;">Order bal.</th>          
           <th>Buy percent of USDT.</th>
@@ -118,11 +137,11 @@
     const table = document.getElementById("priceTable");
     const tbody = table.querySelector("tbody");
     const rows = Array.from(tbody.rows);
-    const sortColumnIndex = 7;
+    const sortColumnIndex = document.getElementById("sortBy").value;
 
     // Analyze and style cells before sorting
     rows.forEach(row => {
-      for (let i = sortColumnIndex; i <= 20; i++) {
+      for (let i = 7; i <= 20; i++) {
         if(typeof row.cells[i] === 'undefined') {
             continue;
         }
@@ -149,7 +168,10 @@
     rows.sort((rowA, rowB) => {
         const changeA = parseFloat(rowA.cells[sortColumnIndex].textContent.trim());
         const changeB = parseFloat(rowB.cells[sortColumnIndex].textContent.trim());
-        return changeB - changeA; // Descending order
+        if (document.getElementById("sortDir").value == "desc") {
+          return changeB - changeA; // Descending order
+        }
+        return changeA - changeB; // Ascending order
     });
 
     // Reorder rows in the table
