@@ -1,11 +1,12 @@
-const binanceFeePercent = parseFloat(document.getElementById(`binanceFee`).value);
-function subtractPercentage(amount, percentage) {
+const binanceFee = parseFloat(document.getElementById(`binanceFee`).value);
+
+function substractFee(amount, percentage) {
     const reduction = (amount * percentage) / 100;
     const newAmount  = amount - reduction;
     return newAmount;
 }
 
-function roundOrderAmount(amount, precision) {
+function trimAmount(amount, precision) {
     const amountParts = amount.toString().split('.');
     if (amountParts.length != 2) {
         alert(`Invalid amount ${amount}`);
@@ -52,16 +53,15 @@ async function getSymbolPrecision(symbol) {
 }
 
 async function sellAll(symbol) {
-    let symbolOrderAmount = parseFloat(document.getElementById(`f-bal-${symbol}`).textContent);
-    if (isNaN(symbolOrderAmount)) {
+    let assetOrderAmount = parseFloat(document.getElementById(`f-bal-${symbol}`).textContent);
+    if (isNaN(assetOrderAmount)) {
         alert('Invalid asset amount.');  
         return;
     }
 
-    symbolOrderAmount = subtractPercentage(symbolOrderAmount, binanceFeePercent);     
-        
     const precision = await getSymbolPrecision(symbol);
-    symbolOrderAmount = roundOrderAmount(symbolOrderAmount, precision.qty);
+ 
+    assetOrderAmount = trimAmount(substractFee(assetOrderAmount, binanceFee), precision.qty);
 
     const assetUSDTPrice = parseFloat(document.getElementById(`price-${symbol}`).textContent);
     if (isNaN(assetUSDTPrice)) {
@@ -69,20 +69,20 @@ async function sellAll(symbol) {
         return;
     }    
 
-    const USDTOrderAmount = assetUSDTPrice * symbolOrderAmount;
+    const USDTOrderAmount = assetUSDTPrice * assetOrderAmount;
     if (USDTOrderAmount < precision.minNot) {
         alert(`Total order value ${USDTOrderAmount} USDT is less than min value ${precision.minNot} USDT.`);  
         return;
     }
 
-    const confirmation = confirm(`Do you confirm selling ${symbolOrderAmount} of ${symbol} fot ${USDTOrderAmount} USDT?`);
+    const confirmation = confirm(`Do you confirm selling ${assetOrderAmount} of ${symbol} fot ${USDTOrderAmount} USDT?`);
 
     if (confirmation) {
         try {
-            const response = await fetch('/sell-symbol', {
+            const response = await fetch('/sell-asset', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: symbolOrderAmount, symbol })
+                body: JSON.stringify({ amount: assetOrderAmount, symbol })
             });
             const data = await response.json();
             alert(`Sell Response: ${JSON.stringify(data)}`);
@@ -93,9 +93,9 @@ async function sellAll(symbol) {
 }
 
 async function buyForFixedUSDT(symbol) {
-    const fixedUSDT = parseFloat(document.getElementById(`fixedUSDT`).value);
-    if (isNaN(fixedUSDT)) {
-        alert(`Invalid fixed USDT amount ${fixedUSDT}.`);  
+    const USDTOrderAmount = parseFloat(document.getElementById(`fixedUSDT`).value);
+    if (isNaN(USDTOrderAmount)) {
+        alert(`Invalid fixed USDT amount ${USDTOrderAmount}.`);  
         return;
     }    
 
@@ -104,28 +104,27 @@ async function buyForFixedUSDT(symbol) {
         alert(`Invalid asset price ${assetUSDTPrice}.`);  
         return;
     }    
-        
-    let buyAmount = parseFloat(fixedUSDT / assetUSDTPrice);
-    if (isNaN(buyAmount)) {
-        alert(`Invalid amount to buy ${buyAmount}.`);  
-        return;
-    }    
-
-    buyAmount = subtractPercentage(buyAmount, binanceFeePercent);
-
+    
     const precision = await getSymbolPrecision(symbol);
-    buyAmount = roundOrderAmount(buyAmount, precision.qty);
-
-    if (fixedUSDT < precision.minNot) {        
-        alert(`Total order value ${fixedUSDT} USDT is less than min value ${precision.minNot} USDT.`);  
+    if (USDTOrderAmount < precision.minNot) {        
+        alert(`Total order value ${USDTOrderAmount} USDT is less than min value ${precision.minNot} USDT.`);  
         return;
     }
 
-    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} for ${fixedUSDT} USDT?`);
+    let buyAmount = trimAmount(
+        substractFee(parseFloat(USDTOrderAmount / assetUSDTPrice),binanceFee), 
+        precision.qty
+    );      
+    if (isNaN(buyAmount)) {
+        alert(`Invalid amount to buy ${buyAmount}.`);  
+        return;
+    }              
+
+    const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} for ${USDTOrderAmount} USDT?`);
 
     if (confirmation) {
         try {
-            const response = await fetch('/buy-symbol', {
+            const response = await fetch('/buy-asset', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount: buyAmount, symbol })
@@ -140,8 +139,8 @@ async function buyForFixedUSDT(symbol) {
 
 async function buyUSDTPercent(symbol) {
     const USDTPercent = parseFloat(document.getElementById(`USDTPercent`).value);
-    if (isNaN(USDTPercent)) {
-        alert(`Invalid buy percent ${USDTPercent}.`); 
+    if (isNaN(USDTPercent) || (USDTPercent > 100 || USDTPercent < 10)) {
+        alert(`Invalid buy USDT percent ${USDTPercent}%.`); 
         return;
     }
 
@@ -155,37 +154,38 @@ async function buyUSDTPercent(symbol) {
     if (isNaN(assetUSDTPrice)) {
         alert(`Invalid asset price ${assetUSDTPrice}.`);  
         return;
-    }    
-    
+    }        
+                
+    const precision = await getSymbolPrecision(symbol);    
     const USDTOrderAmount = (USDTBal / 100 * USDTPercent);
-    let buyAmount = parseFloat(USDTOrderAmount / assetUSDTPrice);
+    if (USDTOrderAmount < precision.minNot) {
+        alert(`Total order value ${USDTOrderAmount} USDT is less than min value ${precision.minNot} USDT.`);  
+        return;
+    }            
+
+    let buyAmount = trimAmount(
+        substractFee(parseFloat(USDTOrderAmount / assetUSDTPrice), binanceFee),
+        precision.qty
+    );
+
     if (isNaN(buyAmount)) {
         alert(`Invalid amount to buy ${buyAmount}.`);  
         return;
     }    
-
-    const precision = await getSymbolPrecision(symbol);
-    if (USDTOrderAmount < precision.minNot) {
-        alert(`Total order value ${USDTOrderAmount} USDT is less than min value ${precision.minNot} USDT.`);  
-        return;
-    }
-
-    buyAmount = subtractPercentage(buyAmount, binanceFeePercent);
-    buyAmount = roundOrderAmount(buyAmount, precision.qty);
-
+        
     const confirmation = confirm(`Do you confirm buying ${buyAmount} of ${symbol} for ${USDTOrderAmount} USDT?`);
 
     if (confirmation) {
         try {
-        const response = await fetch('/buy-symbol', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: buyAmount, symbol })
-        });
-        const data = await response.json();
-        alert(`Buy Response: ${JSON.stringify(data)}`);
+            const response = await fetch('/buy-symbol', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: buyAmount, symbol })
+            });
+            const data = await response.json();
+            alert(`Buy Response: ${JSON.stringify(data)}`);
         } catch (error) {
-        alert('Error placing buy order:', error);
+            alert('Error placing buy order:', error);
         }
     }
 }

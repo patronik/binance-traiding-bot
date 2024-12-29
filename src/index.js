@@ -178,7 +178,7 @@ async function sellAmount(symbol, amount) {
 }
 
 // Endpoint to buy BTC
-app.post('/buy-symbol', async (req, res) => {
+app.post('/buy-asset', async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body
   const { amount, symbol } = req.body;
   const response = await buyAmount(symbol, parseFloat(amount));
@@ -186,7 +186,7 @@ app.post('/buy-symbol', async (req, res) => {
 });
 
 // Endpoint to sell BTC
-app.post('/sell-symbol', async (req, res) => {
+app.post('/sell-asset', async (req, res) => {
   console.log('Request Body:', req.body); // Log the request body
   const { amount, symbol } = req.body;
   const response = await sellAmount(symbol, parseFloat(amount));
@@ -230,7 +230,7 @@ app.get('/change-symbols', async (req, res) => {
     'SOLUSDT',
     'BNBUSDT',
     'DOGEUSDT',
-    'USDCUSDT',
+    // 'USDCUSDT',
     'ADAUSDT',
     'TRXUSDT',
     'AVAXUSDT',
@@ -296,7 +296,7 @@ app.get('/change-symbols', async (req, res) => {
     'STRKUSDT',
     'DYDXUSDT',
     'MOVEUSDT',
-    'BTTCUSDT',
+    // 'BTTCUSDT',
     'EGLDUSDT',
     'RAYUSDT',
     'NEOUSDT',
