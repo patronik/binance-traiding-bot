@@ -209,8 +209,10 @@
     }
   });
 
-  const updateData = (updateRender = false) => {
-    if (updateRender) {
+  const updateData = () => {
+    let timestamp = Math.round((new Date()).getTime() / 1000);
+    let updateRate = parseInt(document.getElementById("updateRate").value, 10);
+    if (timestamp % updateRate == 0) {
       const priceTable = document.getElementById("priceTable");
       const renderTable = priceTable.cloneNode(true);      
       const childElements = renderTable.querySelectorAll('*');
@@ -223,8 +225,8 @@
     }
   };
 
-  const updateCellColor = (cell, newColor, updateHistory = false) => {
-    if (updateHistory) {
+  const updateCellColor = (cell, newColor, upHistory) => {
+    if (upHistory) {
       let colorHistory = cell.dataset.colorHistory
       ? JSON.parse(cell.dataset.colorHistory)
       : [];
@@ -233,55 +235,65 @@
         colorHistory.shift();
       }
       cell.dataset.colorHistory = JSON.stringify(colorHistory);  
-    }
+    } 
     cell.style.backgroundColor = newColor;
   };
 
-  const sortTable = (updateHistory = false) => {
-    const table = document.getElementById("priceTable");
-    const tbody = table.querySelector("tbody");
-    const rows = Array.from(tbody.rows);
-    const sortColumnIndex = document.getElementById("sortBy").value;
+  const sortTable = (() => {
+    let skipHistoryUpdate = 0;
+    return (cell, newColor) => {
+      const table = document.getElementById("priceTable");
+      const tbody = table.querySelector("tbody");
+      const rows = Array.from(tbody.rows);
+      const sortColumnIndex = document.getElementById("sortBy").value;
 
-    // Analyze and style cells before sorting
-    rows.forEach(row => {
-      for (let i = 9; i <= 20; i++) {
-        if(typeof row.cells[i] === 'undefined') {
-            continue;
+      // Analyze and style cells before sorting
+      rows.forEach(row => {
+        for (let i = 9; i <= 20; i++) {
+          if(typeof row.cells[i] === 'undefined') {
+              continue;
+          }
+          const cell = row.cells[i];
+          if (cell) {
+              const value = parseFloat(cell.textContent.trim());
+              if (!isNaN(value)) {
+                  if (value > 0) {
+                      updateCellColor(cell, "green", skipHistoryUpdate >= 60);
+                  } else if (value < 0) {
+                      updateCellColor(cell, "red", skipHistoryUpdate >= 60);
+                  } else {
+                      updateCellColor(cell, "grey", skipHistoryUpdate >= 60);
+                  }
+              } else {
+                  // Clear background for non-numeric values
+                  cell.style.backgroundColor = ""; 
+              }
+          }
         }
-        const cell = row.cells[i];
-        if (cell) {
-            const value = parseFloat(cell.textContent.trim());
-            if (!isNaN(value)) {
-                if (value > 0) {
-                    updateCellColor(cell, "green", updateHistory);
-                } else if (value < 0) {
-                    updateCellColor(cell, "red", updateHistory);
-                } else {
-                    updateCellColor(cell, "grey", updateHistory);
-                }
-            } else {
-                // Clear background for non-numeric values
-                cell.style.backgroundColor = ""; 
-            }
-        }
+      });
+
+      if (skipHistoryUpdate < 60) {
+        skipHistoryUpdate++;
+      } else {
+        console.log('history update at:', new Date().toLocaleString());
+        skipHistoryUpdate = 0;
       }
-    });
 
-    // Sort the rows
-    rows.sort((rowA, rowB) => {
-        const changeA = parseFloat(rowA.cells[sortColumnIndex].textContent.trim());
-        const changeB = parseFloat(rowB.cells[sortColumnIndex].textContent.trim());
-        if (document.getElementById("sortDir").value == "desc") {
-          return changeB - changeA; // Descending order
-        }
-        return changeA - changeB; // Ascending order
-    });
+      // Sort the rows
+      rows.sort((rowA, rowB) => {
+          const changeA = parseFloat(rowA.cells[sortColumnIndex].textContent.trim());
+          const changeB = parseFloat(rowB.cells[sortColumnIndex].textContent.trim());
+          if (document.getElementById("sortDir").value == "desc") {
+            return changeB - changeA; // Descending order
+          }
+          return changeA - changeB; // Ascending order
+      });
 
-    // Reorder rows in the table
-    rows.forEach(row => tbody.appendChild(row));
-  };
-
+      // Reorder rows in the table
+      rows.forEach(row => tbody.appendChild(row));
+    };
+  })();
+  
   function updateChange(symbol, seconds) {
     // Update the price history for the last minute
     if (priceHistory[symbol].length >= seconds) {
@@ -329,7 +341,7 @@
     });
   }
 
-
+  let tickCount = 0;
   // Fetch and update prices every second
   setInterval(async () => {
     try {    
@@ -352,33 +364,22 @@
         updateChange(symbol, 60 * 15);
         updateChange(symbol, 60 * 30);
         updateChange(symbol, 60 * 60);
-        
-        if (priceHistory[symbol].length >= 60) {
-          let timestamp = Math.round((new Date()).getTime() / 1000);
-
-          let updateHistory = false;
-          if (timestamp % 60 == 0) {
-            updateHistory = true;
-          }  
-
-          let updateRate = parseInt(document.getElementById("updateRate").value, 10);
-          let updateRender = false;
-          if (timestamp % updateRate == 0) {
-            updateRender = true;
-          }  
-
-          sortTable(updateHistory);  
-          updateData(updateRender);          
-        }
 
         if (priceHistory[symbol].length >= 60 * 60) {
           priceHistory[symbol].shift();
         }        
-      });     
+      }); 
+      
+      if (tickCount >= 60) {
+        sortTable();  
+        updateData();          
+      }
+
       await updateBalances();
     } catch (error) {
       console.error('Error fetching data:', error);
     }
+    tickCount++;
   }, 1000);
 };
 
