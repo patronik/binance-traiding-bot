@@ -17,6 +17,17 @@
       #admin-panel label {
         padding: 0px 10px 0px 10px;
       }
+      .custom-tooltip {
+        position: absolute;
+        pointer-events: none; /* don't steal mouse events */
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        display: none;       /* hidden by default */
+        z-index: 9999;       /* on top of everything */
+      }
     </style>
     <script type="text/javascript" src="binance.js" defer></script>
   </head>
@@ -70,6 +81,8 @@
   <div id="hiddenContainer" style="display:none;">
   </div>
   <div>
+     <!-- The hidden tooltip container -->
+     <div id="customTooltip" class="custom-tooltip"></div>
     <table id="renderTable">      
     </table>  
   </div>
@@ -126,21 +139,78 @@
             <td id="real-o-bal-usdt-${symbol}"></td>            
             <td><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></td>
             <td><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></td>
-            <td id="real-change-${60}-${symbol}">--</td>
-            <td id="real-change-${60 * 3}-${symbol}">--</td>
-            <td id="real-change-${60 * 5}-${symbol}">--</td>
-            <td id="real-change-${60 * 15}-${symbol}">--</td>
-            <td id="real-change-${60 * 30}-${symbol}">--</td>
-            <td id="real-change-${60 * 60}-${symbol}">--</td>
+            <td data-colorHistory="" id="real-change-${60}-${symbol}">--</td>
+            <td data-colorHistory="" id="real-change-${60 * 3}-${symbol}">--</td>
+            <td data-colorHistory="" id="real-change-${60 * 5}-${symbol}">--</td>
+            <td data-colorHistory="" id="real-change-${60 * 15}-${symbol}">--</td>
+            <td data-colorHistory="" id="real-change-${60 * 30}-${symbol}">--</td>
+            <td data-colorHistory="" id="real-change-${60 * 60}-${symbol}">--</td>
           </tr>
         `).join('')}
       </tbody>
     </table>
   `;
 
-  const updateData = () => {
-    let updateRate = parseInt(document.getElementById("updateRate").value, 10);
-    if (Math.round((new Date()).getTime() / 1000) % updateRate == 0) {
+  /**
+   * Custom tooltip logic
+   */
+  const tooltip = document.getElementById("customTooltip");
+
+  // Function to show the tooltip with some HTML content
+  const showTooltip = (htmlContent, x, y) => {
+    tooltip.innerHTML = htmlContent;
+    tooltip.style.left = x + 15 + "px";  // add a small offset
+    tooltip.style.top = y + 15 + "px";
+    tooltip.style.display = "block";
+  };
+
+  // Function to hide the tooltip
+  const hideTooltip = () => {
+    tooltip.style.display = "none";
+  };
+
+  const renderTable = document.getElementById("renderTable");
+
+  renderTable.addEventListener("mouseover", (e) => {
+    // Check if we're hovering over a cell
+    let cell = e.target.closest("td");
+    if (!cell || !renderTable.contains(cell)) return;
+
+    // If the cell has a color history, display it as HTML
+    if (cell.dataset.colorHistory) {
+      const colorHistory = JSON.parse(cell.dataset.colorHistory);
+
+      // Build some HTML content, for example a list of color boxes
+      // to show the last 4 background colors
+      let content = "<strong>History:</strong><ul style='padding-left: 1rem; margin: 4px 0;'>";
+      colorHistory.forEach((color) => {
+        const boxStyle = `display: inline-block; width: 12px; height: 12px; border: 1px solid #000; background:${color || "transparent"}; margin-right: 6px;`;
+        content += `<li style="list-style:none;"><span style="${boxStyle}"></span> ${color || "(none)"}</li>`;
+      });
+      content += "</ul>";
+
+        // Show the tooltip near the mouse cursor
+        showTooltip(content, e.pageX, e.pageY);
+      }
+  });
+
+  // Update tooltip position if mouse moves, but only if it’s visible
+  renderTable.addEventListener("mousemove", (e) => {
+    if (tooltip.style.display === "block") {
+      showTooltip(tooltip.innerHTML, e.pageX, e.pageY);
+    }
+  });
+
+  // Hide tooltip on mouse out
+  renderTable.addEventListener("mouseout", (e) => {
+    // If leaving the cell or renderTable, hide the tooltip
+    if (!renderTable.contains(e.relatedTarget)) {
+      hideTooltip();
+    }
+  });
+
+  const updateData = (needUpdate = false) => {
+    if (needUpdate) {
       const priceTable = document.getElementById("priceTable");
       const renderTable = priceTable.cloneNode(true);      
       const childElements = renderTable.querySelectorAll('*');
@@ -150,10 +220,24 @@
         }
       });
       document.getElementById("renderTable").innerHTML = renderTable.innerHTML;
-    }  
+    }
   };
 
-  const sortTable = () => {
+  const updateCellColor = (cell, newColor, updateHistory = false) => {
+    if (updateHistory) {
+      let colorHistory = cell.dataset.colorHistory
+      ? JSON.parse(cell.dataset.colorHistory)
+      : [];
+      colorHistory.push(newColor);
+      if (colorHistory.length > 15) {
+        colorHistory.shift();
+      }
+      cell.dataset.colorHistory = JSON.stringify(colorHistory);  
+    }
+    cell.style.backgroundColor = newColor;
+  };
+
+  const sortTable = (updateHistory = false) => {
     const table = document.getElementById("priceTable");
     const tbody = table.querySelector("tbody");
     const rows = Array.from(tbody.rows);
@@ -170,11 +254,11 @@
             const value = parseFloat(cell.textContent.trim());
             if (!isNaN(value)) {
                 if (value > 0) {
-                    cell.style.backgroundColor = "green";
+                    updateCellColor(cell, "green", updateHistory);
                 } else if (value < 0) {
-                    cell.style.backgroundColor = "red";
+                    updateCellColor(cell, "red", updateHistory);
                 } else {
-                    cell.style.backgroundColor = "grey";
+                    updateCellColor(cell, "grey", updateHistory);
                 }
             } else {
                 // Clear background for non-numeric values
@@ -270,8 +354,13 @@
         updateChange(symbol, 60 * 60);
         
         if (priceHistory[symbol].length >= 60) {
-          sortTable();  
-          updateData();          
+          let needUpdate = false;
+          let updateRate = parseInt(document.getElementById("updateRate").value, 10);
+          if (Math.round((new Date()).getTime() / 1000) % updateRate == 0) {
+            needUpdate = true;
+          }  
+          sortTable(needUpdate);  
+          updateData(needUpdate);          
         }
 
         if (priceHistory[symbol].length >= 60 * 60) {
