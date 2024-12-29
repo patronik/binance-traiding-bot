@@ -171,7 +171,7 @@ async function buyUSDTPercent(symbol) {
 
     if (confirmation) {
         try {
-            const response = await fetch('/buy-symbol', {
+            const response = await fetch('/buy-asset', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount: buyAmount, symbol })
