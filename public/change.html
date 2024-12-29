@@ -98,12 +98,12 @@
       <thead>
         <tr>
           <th>Symbol</th>
-          <th>Price (USDT)</th>
-          <th>Free bal.</th>
-          <th>Free bal. USDT</th>
+          <th data-sort="number">Price (USDT)</th>
+          <th data-sort="number">Free bal.</th>
+          <th data-sort="number">Free bal. USDT</th>
           <th>Sell all.</th>
-          <th>Order bal.</th>    
-          <th>Order bal. USDT</th>       
+          <th data-sort="number">Order bal.</th>    
+          <th data-sort="number">Order bal. USDT</th>       
           <th>Buy percent of USDT.</th>
           <th>Buy for fixed USDT.</th>
           <th data-sort="number">Change (1 minute %)</th>
@@ -116,27 +116,42 @@
       </thead>
       <tbody>
         ${symbols.map(symbol => `
-          <tr id="row-${symbol}">
+          <tr>
             <td><a href="https://www.binance.com/uk-UA/trade/${symbol.replace('USDT', '_USDT')}?_from=markets&type=spot" target="_blank">${symbol}</a></td>
-            <td id="price-${symbol}">--</td>
-            <td id="f-bal-${symbol}"></td>
-            <td id="f-bal-usdt-${symbol}"></td>
+            <td id="real-price-${symbol}">--</td>
+            <td id="real-f-bal-${symbol}"></td>
+            <td id="real-f-bal-usdt-${symbol}"></td>
             <td><input type="button" value="Sell all" onclick="sellAll('${symbol}');" /></td>
-            <td id="o-bal-${symbol}"></td>
-            <td id="o-bal-usdt-${symbol}"></td>            
+            <td id="real-o-bal-${symbol}"></td>
+            <td id="real-o-bal-usdt-${symbol}"></td>            
             <td><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></td>
             <td><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></td>
-            <td id="change-${60}-${symbol}">--</td>
-            <td id="change-${60 * 3}-${symbol}">--</td>
-            <td id="change-${60 * 5}-${symbol}">--</td>
-            <td id="change-${60 * 15}-${symbol}">--</td>
-            <td id="change-${60 * 30}-${symbol}">--</td>
-            <td id="change-${60 * 60}-${symbol}">--</td>
+            <td id="real-change-${60}-${symbol}">--</td>
+            <td id="real-change-${60 * 3}-${symbol}">--</td>
+            <td id="real-change-${60 * 5}-${symbol}">--</td>
+            <td id="real-change-${60 * 15}-${symbol}">--</td>
+            <td id="real-change-${60 * 30}-${symbol}">--</td>
+            <td id="real-change-${60 * 60}-${symbol}">--</td>
           </tr>
         `).join('')}
       </tbody>
     </table>
   `;
+
+  const updateData = () => {
+    let updateRate = parseInt(document.getElementById("updateRate").value, 10);
+    if (Math.round((new Date()).getTime() / 1000) % updateRate == 0) {
+      const priceTable = document.getElementById("priceTable");
+      const renderTable = priceTable.cloneNode(true);      
+      const childElements = renderTable.querySelectorAll('*');
+      childElements.forEach(child => {
+        if (child.id && child.id.includes('real-')) {
+          child.id = child.id.replace(/real-/g, '');
+        }
+      });
+      document.getElementById("renderTable").innerHTML = renderTable.innerHTML;
+    }  
+  };
 
   const sortTable = () => {
     const table = document.getElementById("priceTable");
@@ -183,14 +198,6 @@
     rows.forEach(row => tbody.appendChild(row));
   };
 
-  const updateData = () => {
-    let updateRate = parseInt(document.getElementById("updateRate").value, 10);
-    if (Math.round((new Date()).getTime() / 1000) % updateRate == 0) {
-      document.getElementById("renderTable").innerHTML
-       = document.getElementById("priceTable").innerHTML;
-    }  
-  };
-
   function updateChange(symbol, seconds) {
     // Update the price history for the last minute
     if (priceHistory[symbol].length >= seconds) {
@@ -199,9 +206,9 @@
         (priceHistory[symbol][priceHistory[symbol].length - 1] - priceHistory[symbol][priceHistory[symbol].length - seconds]) 
         / priceHistory[symbol][priceHistory[symbol].length - seconds] * 100
       ).toFixed(2);
-      document.getElementById(`change-${seconds}-${symbol}`).textContent = `${priceChange}`;
+      document.getElementById(`real-change-${seconds}-${symbol}`).textContent = `${priceChange}`;
     } else {
-      document.getElementById(`change-${seconds}-${symbol}`).textContent = `...`;
+      document.getElementById(`real-change-${seconds}-${symbol}`).textContent = `...`;
     }  
   }
 
@@ -210,24 +217,24 @@
     const data = await response.json(); 
 
     Object.entries(data.balances).forEach(([symbol, balances]) => {
-      if (document.getElementById(`f-bal-${symbol}`)) {
-        document.getElementById(`f-bal-${symbol}`).textContent 
+      if (document.getElementById(`real-f-bal-${symbol}`)) {
+        document.getElementById(`real-f-bal-${symbol}`).textContent 
         = balances.freeBalance;
       }      
 
-      if (document.getElementById(`f-bal-usdt-${symbol}`)) {
-        document.getElementById(`f-bal-usdt-${symbol}`).textContent         
+      if (document.getElementById(`real-f-bal-usdt-${symbol}`)) {
+        document.getElementById(`real-f-bal-usdt-${symbol}`).textContent         
           = balances.freeInUSDT;
       }      
 
 
-      if (document.getElementById(`o-bal-${symbol}`)) {
-        document.getElementById(`o-bal-${symbol}`).textContent 
+      if (document.getElementById(`real-o-bal-${symbol}`)) {
+        document.getElementById(`real-o-bal-${symbol}`).textContent 
         = balances.onOrderBalance;
       }      
 
-      if (document.getElementById(`o-bal-usdt-${symbol}`)) {
-        document.getElementById(`o-bal-usdt-${symbol}`).textContent         
+      if (document.getElementById(`real-o-bal-usdt-${symbol}`)) {
+        document.getElementById(`real-o-bal-usdt-${symbol}`).textContent         
           = balances.onOrderInUSDT;
       }      
 
@@ -253,7 +260,7 @@
         priceHistory[symbol].push(currentPrice);
 
         // Update the table
-        document.getElementById(`price-${symbol}`).textContent = currentPrice;
+        document.getElementById(`real-price-${symbol}`).textContent = currentPrice;
 
         updateChange(symbol, 60);
         updateChange(symbol, 60 * 3);
