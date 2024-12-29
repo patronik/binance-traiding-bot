@@ -215,19 +215,20 @@
         = balances.freeBalance;
       }      
 
+      if (document.getElementById(`f-bal-usdt-${symbol}`)) {
+        document.getElementById(`f-bal-usdt-${symbol}`).textContent         
+          = balances.freeInUSDT;
+      }      
+
+
       if (document.getElementById(`o-bal-${symbol}`)) {
         document.getElementById(`o-bal-${symbol}`).textContent 
         = balances.onOrderBalance;
       }      
 
-      if (document.getElementById(`f-bal-usdt-${symbol}`)) {
-        document.getElementById(`f-bal-usdt-${symbol}`).textContent         
-          = trimAmount(parseFloat(balances.freeInUSDT), 2);
-      }      
-
       if (document.getElementById(`o-bal-usdt-${symbol}`)) {
         document.getElementById(`o-bal-usdt-${symbol}`).textContent         
-          = trimAmount(parseFloat(balances.onOrderInUSDT), 2);
+          = balances.onOrderInUSDT;
       }      
 
       if (symbol == 'USDTUSDT') {
@@ -252,7 +253,7 @@
         priceHistory[symbol].push(currentPrice);
 
         // Update the table
-        document.getElementById(`price-${symbol}`).textContent = trimAmount(currentPrice, 8);
+        document.getElementById(`price-${symbol}`).textContent = currentPrice;
 
         updateChange(symbol, 60);
         updateChange(symbol, 60 * 3);

@@ -7,7 +7,7 @@ function substractFee(amount, percentage) {
 }
 
 function trimAmount(amount, precision) {
-    const amountParts = amount.toString().split('.');
+    const amountParts = amount.toString().split('.');    
     if (amountParts.length != 2) {
         alert(`Invalid amount ${amount}`);
         return;
@@ -111,10 +111,7 @@ async function buyForFixedUSDT(symbol) {
         return;
     }
 
-    let buyAmount = trimAmount(
-        substractFee(parseFloat(USDTOrderAmount / assetUSDTPrice),binanceFee), 
-        precision.qty
-    );      
+    let buyAmount = trimAmount(substractFee(parseFloat(USDTOrderAmount / assetUSDTPrice),binanceFee), precision.qty);      
     if (isNaN(buyAmount)) {
         alert(`Invalid amount to buy ${buyAmount}.`);  
         return;
@@ -163,10 +160,7 @@ async function buyUSDTPercent(symbol) {
         return;
     }            
 
-    let buyAmount = trimAmount(
-        substractFee(parseFloat(USDTOrderAmount / assetUSDTPrice), binanceFee),
-        precision.qty
-    );
+    let buyAmount = trimAmount(substractFee(parseFloat(USDTOrderAmount / assetUSDTPrice), binanceFee), precision.qty);
 
     if (isNaN(buyAmount)) {
         alert(`Invalid amount to buy ${buyAmount}.`);  
