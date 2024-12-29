@@ -21,7 +21,10 @@
     <script type="text/javascript" src="binance.js" defer></script>
   </head>
 <body>
-  <div id="admin-panel">       
+  <div id="admin-panel"> 
+    <label>
+      Fee <input type="number" id="binanceFee" style="width: 20px;" step="0.01" max="1" min="0.1" value="0.1">%        
+    </label>      
     <label>
       Buy for <input type="number" id="USDTPercent" style="width: 50px;" step="10" max="100" min="10" value="100">% of USDT        
     </label>
@@ -47,8 +50,8 @@
         <option value="1">Price (USDT)</option>
         <option value="2">Free bal.</option>
         <option value="3">Free bal. USDT</option>
-        <option value="4">Order bal.</option>
-        <option value="5">Order bal. USDT</option>
+        <option value="5">Order bal.</option>
+        <option value="6">Order bal. USDT</option>
         <option value="9" selected>(1 minute %)</option>
         <option value="10">(3 minutes %)</option>
         <option value="11">(5 minutes %)</option>
