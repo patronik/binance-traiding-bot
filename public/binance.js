@@ -1,4 +1,4 @@
-const binanceFeePercent = 0.2;  
+const binanceFeePercent = 0.1;  
 function subtractPercentage(amount, percentage) {
     const reduction = (amount * percentage) / 100;
     const newAmount  = amount - reduction;

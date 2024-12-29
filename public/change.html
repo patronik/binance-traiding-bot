@@ -98,11 +98,11 @@
           <th>Price (USDT)</th>
           <th>Free bal.</th>
           <th>Free bal. USDT</th>
+          <th>Sell all.</th>
           <th>Order bal.</th>    
           <th>Order bal. USDT</th>       
           <th>Buy percent of USDT.</th>
           <th>Buy for fixed USDT.</th>
-          <th>Sell all.</th>
           <th data-sort="number">Change (1 minute %)</th>
           <th data-sort="number">Change (3 minutes %)</th>
           <th data-sort="number">Change (5 minutes %)</th>
@@ -118,11 +118,11 @@
             <td id="price-${symbol}">--</td>
             <td id="f-bal-${symbol}"></td>
             <td id="f-bal-usdt-${symbol}"></td>
+            <td><input type="button" value="Sell all" onclick="sellAll('${symbol}');" /></td>
             <td id="o-bal-${symbol}"></td>
             <td id="o-bal-usdt-${symbol}"></td>            
             <td><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></td>
             <td><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></td>
-            <td><input type="button" value="Sell all" onclick="sellAll('${symbol}');" /></td>
             <td id="change-${60}-${symbol}">--</td>
             <td id="change-${60 * 3}-${symbol}">--</td>
             <td id="change-${60 * 5}-${symbol}">--</td>
