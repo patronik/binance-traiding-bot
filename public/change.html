@@ -209,8 +209,8 @@
     }
   });
 
-  const updateData = (needUpdate = false) => {
-    if (needUpdate) {
+  const updateData = (updateRender = false) => {
+    if (updateRender) {
       const priceTable = document.getElementById("priceTable");
       const renderTable = priceTable.cloneNode(true);      
       const childElements = renderTable.querySelectorAll('*');
@@ -354,13 +354,21 @@
         updateChange(symbol, 60 * 60);
         
         if (priceHistory[symbol].length >= 60) {
-          let needUpdate = false;
-          let updateRate = parseInt(document.getElementById("updateRate").value, 10);
-          if (Math.round((new Date()).getTime() / 1000) % updateRate == 0) {
-            needUpdate = true;
+          let timestamp = Math.round((new Date()).getTime() / 1000);
+
+          let updateHistory = false;
+          if (timestamp % 60 == 0) {
+            updateHistory = true;
           }  
-          sortTable(needUpdate);  
-          updateData(needUpdate);          
+
+          let updateRate = parseInt(document.getElementById("updateRate").value, 10);
+          let updateRender = false;
+          if (timestamp % updateRate == 0) {
+            updateRender = true;
+          }  
+
+          sortTable(updateHistory);  
+          updateData(updateRender);          
         }
 
         if (priceHistory[symbol].length >= 60 * 60) {
