@@ -185,7 +185,7 @@
       let content = "<strong>History:</strong><ul style='padding-left: 1rem; margin: 4px 0;'>";
       colorHistory.forEach((color) => {
         const boxStyle = `display: inline-block; width: 12px; height: 12px; border: 1px solid #000; background:${color || "transparent"}; margin-right: 6px;`;
-        content += `<li style="list-style:none;"><span style="${boxStyle}"></span> ${color || "(none)"}</li>`;
+        content += `<li style="list-style:none;"><span style="${boxStyle}"></span></li>`;
       });
       content += "</ul>";
 
@@ -345,43 +345,41 @@
   // Fetch and update prices every second
   setInterval(async () => {
     try {    
-      const response = await fetch(apiUrl);
-      let data = await response.json();      
+        const response = await fetch(apiUrl);
+        let data = await response.json();      
+        data.filter(i => symbols.includes(i.symbol)).forEach(item => {
+          const { symbol, price } = item;
+          const currentPrice = parseFloat(price);
+          
+          // Add price to history
+          priceHistory[symbol].push(currentPrice);
 
-      data.filter(i => symbols.includes(i.symbol)).forEach(item => {
-        const { symbol, price } = item;
-        const currentPrice = parseFloat(price);
-        
-        // Add price to history
-        priceHistory[symbol].push(currentPrice);
+          // Update the table
+          document.getElementById(`real-price-${symbol}`).textContent = currentPrice;
 
-        // Update the table
-        document.getElementById(`real-price-${symbol}`).textContent = currentPrice;
+          updateChange(symbol, 60);
+          updateChange(symbol, 60 * 3);
+          updateChange(symbol, 60 * 5);
+          updateChange(symbol, 60 * 15);
+          updateChange(symbol, 60 * 30);
+          updateChange(symbol, 60 * 60);
 
-        updateChange(symbol, 60);
-        updateChange(symbol, 60 * 3);
-        updateChange(symbol, 60 * 5);
-        updateChange(symbol, 60 * 15);
-        updateChange(symbol, 60 * 30);
-        updateChange(symbol, 60 * 60);
-
-        if (priceHistory[symbol].length >= 60 * 60) {
-          priceHistory[symbol].shift();
-        }        
-      }); 
-      
-      if (tickCount >= 60) {
-        sortTable();  
-        updateData();          
+          if (priceHistory[symbol].length >= 60 * 60) {
+            priceHistory[symbol].shift();
+          }        
+        }); 
+        if (tickCount >= 60) {
+          sortTable();  
+          updateData();          
+        }
+        await updateBalances();
+      } catch (error) {
+          console.error('Error fetching data:', error);
       }
 
-      await updateBalances();
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-    tickCount++;
-  }, 1000);
-};
+      tickCount++;
+    }, 1000);
+  };
 
 runMonitoring();
 
