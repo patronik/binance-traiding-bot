@@ -284,7 +284,7 @@ app.get('/change-symbols', async (req, res) => {
     'MKRUSDT',
     'QNTUSDT',
     'LDOUSDT',
-    'FDUSDUSDT',
+    // 'FDUSDUSDT',
     'PYTHUSDT',
     'KAIAUSDT',
     'JUPUSDT',
