@@ -217,11 +217,20 @@
     }
   });
 
-  document.getElementById("clear-history").addEventListener("click", function() {
+  const clearColorHistory = () => {
     const elements = document.querySelectorAll("[data-color-history]");
     elements.forEach(function(element) {
       element.setAttribute("data-color-history", "");
     });
+  };
+
+
+  document.getElementById("clear-history").addEventListener("click", function() {
+    clearColorHistory();
+  });
+
+  document.getElementById("updateRate").addEventListener("change", function() {
+    clearColorHistory();
   });
 
   const updateData = (needUpdate) => {
