@@ -78,6 +78,9 @@
         <option value="asc">ASC</option>
       </select>
     </label>
+    <label>
+      <button id="clear-history">Clear history</button>
+    </label>
   </div>  
   <div id="hiddenContainer" style="display:none;">
   </div>
@@ -214,10 +217,15 @@
     }
   });
 
-  const updateData = () => {
-    let timestamp = Math.round((new Date()).getTime() / 1000);
-    let updateRate = parseInt(document.getElementById("updateRate").value, 10);
-    if (timestamp % updateRate == 0) {
+  document.getElementById("clear-history").addEventListener("click", function() {
+    const elements = document.querySelectorAll("[data-color-history]");
+    elements.forEach(function(element) {
+      element.setAttribute("data-color-history", "");
+    });
+  });
+
+  const updateData = (needUpdate) => {
+    if (needUpdate) {
       const priceTable = document.getElementById("priceTable");
       const renderTable = priceTable.cloneNode(true);      
       const childElements = renderTable.querySelectorAll('*');
@@ -230,8 +238,8 @@
     }
   };
 
-  const updateCellColor = (cell, newColor, upHistory) => {
-    if (upHistory) {
+  const updateCellColor = (cell, newColor, needUpdate) => {
+    if (needUpdate) {
       let colorHistory = cell.dataset.colorHistory
       ? JSON.parse(cell.dataset.colorHistory)
       : [];
@@ -244,61 +252,51 @@
     cell.style.backgroundColor = newColor;
   };
 
-  const sortTable = (() => {
-    let skipHistoryUpdate = 0;
-    return (cell, newColor) => {
-      const table = document.getElementById("priceTable");
-      const tbody = table.querySelector("tbody");
-      const rows = Array.from(tbody.rows);
-      const sortColumnIndex = document.getElementById("sortBy").value;
+  const sortTable = (needUpdate) => {
+    const table = document.getElementById("priceTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.rows);
+    const sortColumnIndex = document.getElementById("sortBy").value;
 
-      // Analyze and style cells before sorting
-      rows.forEach(row => {
-        for (let i = 9; i <= 20; i++) {
-          if(typeof row.cells[i] === 'undefined') {
-              continue;
-          }
-          const cell = row.cells[i];
-          if (cell) {
-              const value = parseFloat(cell.textContent.trim());
-              if (!isNaN(value)) {
-                  if (value > 0) {
-                      updateCellColor(cell, "green", skipHistoryUpdate >= 60);
-                  } else if (value < 0) {
-                      updateCellColor(cell, "red", skipHistoryUpdate >= 60);
-                  } else {
-                      updateCellColor(cell, "grey", skipHistoryUpdate >= 60);
-                  }
-              } else {
-                  // Clear background for non-numeric values
-                  cell.style.backgroundColor = ""; 
-              }
-          }
+    // Analyze and style cells before sorting
+    rows.forEach(row => {
+      for (let i = 9; i <= 20; i++) {
+        if(typeof row.cells[i] === 'undefined') {
+            continue;
         }
-      });
-
-      if (skipHistoryUpdate < 60) {
-        skipHistoryUpdate++;
-      } else {
-        // console.log('history update at:', new Date().toLocaleString());
-        skipHistoryUpdate = 0;
+        const cell = row.cells[i];
+        if (cell) {
+            const value = parseFloat(cell.textContent.trim());
+            if (!isNaN(value)) {
+                if (value > 0) {
+                    updateCellColor(cell, "green", needUpdate);
+                } else if (value < 0) {
+                    updateCellColor(cell, "red", needUpdate);
+                } else {
+                    updateCellColor(cell, "grey", needUpdate);
+                }
+            } else {
+                // Clear background for non-numeric values
+                cell.style.backgroundColor = ""; 
+            }
+        }
       }
+    });
 
-      // Sort the rows
-      rows.sort((rowA, rowB) => {
-          const changeA = parseFloat(rowA.cells[sortColumnIndex].textContent.trim());
-          const changeB = parseFloat(rowB.cells[sortColumnIndex].textContent.trim());
-          if (document.getElementById("sortDir").value == "desc") {
-            return changeB - changeA; // Descending order
-          }
-          return changeA - changeB; // Ascending order
-      });
+    // Sort the rows
+    rows.sort((rowA, rowB) => {
+        const changeA = parseFloat(rowA.cells[sortColumnIndex].textContent.trim());
+        const changeB = parseFloat(rowB.cells[sortColumnIndex].textContent.trim());
+        if (document.getElementById("sortDir").value == "desc") {
+          return changeB - changeA; // Descending order
+        }
+        return changeA - changeB; // Ascending order
+    });
 
-      // Reorder rows in the table
-      rows.forEach(row => tbody.appendChild(row));
-    };
-  })();
-  
+    // Reorder rows in the table
+    rows.forEach(row => tbody.appendChild(row));
+  };  
+
   function updateChange(symbol, seconds) {
     // Update the price history for the last minute
     if (priceHistory[symbol].length >= seconds) {
@@ -374,8 +372,15 @@
           }        
         }); 
         if (tickCount >= 60) {
-          sortTable();  
-          updateData();          
+          let timestamp = Math.round((new Date()).getTime() / 1000);
+          let updateRate = parseInt(document.getElementById("updateRate").value, 10);
+          let needUpdate = false;
+          if (timestamp % updateRate == 0) {
+            needUpdate = true;
+          }
+
+          sortTable(needUpdate);  
+          updateData(needUpdate);          
         }
         await updateBalances();
       } catch (error) {
