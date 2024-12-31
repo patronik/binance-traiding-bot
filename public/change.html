@@ -28,6 +28,7 @@
         display: none;       /* hidden by default */
         z-index: 9999;       /* on top of everything */
       }
+
     </style>
     <script type="text/javascript" src="binance.js" defer></script>
   </head>
@@ -182,12 +183,16 @@
 
       // Build some HTML content, for example a list of color boxes
       // to show the last 4 background colors
-      let content = "<strong>History:</strong><ul style='padding-left: 1rem; margin: 4px 0;'>";
-      colorHistory.forEach((color) => {
-        const boxStyle = `display: inline-block; width: 12px; height: 12px; border: 1px solid #000; background:${color || "transparent"}; margin-right: 6px;`;
-        content += `<li style="list-style:none;"><span style="${boxStyle}"></span></li>`;
+      let content = "<table class='tooltip-box'><tr>";
+      colorHistory.forEach((color, index) => {
+        let lineBreak = '';
+        if ((index + 1) % 10 == 0) {
+          lineBreak = '</tr><tr>';
+        }
+        const boxStyle = `width: 10px; height: 10px; border: 1px solid #000; background:${color || "transparent"};`;
+        content += `<td style="${boxStyle}">${index + 1}</td>${lineBreak}`;
       });
-      content += "</ul>";
+      content += "</tr></table>";
 
         // Show the tooltip near the mouse cursor
         showTooltip(content, e.pageX, e.pageY);
@@ -231,7 +236,7 @@
       ? JSON.parse(cell.dataset.colorHistory)
       : [];
       colorHistory.push(newColor);
-      if (colorHistory.length > 15) {
+      if (colorHistory.length > 30) {
         colorHistory.shift();
       }
       cell.dataset.colorHistory = JSON.stringify(colorHistory);  
