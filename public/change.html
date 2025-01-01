@@ -78,6 +78,12 @@
       </select>
     </label>
     <label>
+      Sort algo <select id="sortAlgo">
+        <option value="value">Value</option>
+        <option value="correction">Correction</option>
+      </select>
+    </label>
+    <label>
       Sort dir <select id="sortDir">
         <option value="desc">DESC</option>
         <option value="asc">ASC</option>
@@ -298,14 +304,49 @@
     });
 
     // Sort the rows
-    rows.sort((rowA, rowB) => {
+    const sortAlgo = document.getElementById("sortAlgo").value;
+    if (sortAlgo == "value") {
+      rows.sort((rowA, rowB) => {
         const changeA = parseFloat(rowA.cells[sortColumnIndex].textContent.trim());
         const changeB = parseFloat(rowB.cells[sortColumnIndex].textContent.trim());
-        if (document.getElementById("sortDir").value == "desc") {
-          return changeB - changeA; // Descending order
+          if (document.getElementById("sortDir").value == "desc") {
+            return changeB - changeA; // Descending order
+          }
+          return changeA - changeB; // Ascending order
         }
-        return changeA - changeB; // Ascending order
-    });
+      );  
+    } else if (sortAlgo == "correction") {
+        rows.sort((rowA, rowB) => {
+        const historyA = JSON.parse(rowA.cells[sortColumnIndex].dataset.colorHistory || '[]');
+        let correctionA = 0;
+        if (historyA.length > 1 && historyA[historyA.length - 1] == 'green') {
+          let prevIndex = historyA.length - 1 - 1;
+          while (historyA[prevIndex] !== 'undefined' 
+                && (historyA[prevIndex] == 'red' || historyA[prevIndex] == 'gray')
+          ) {
+            correctionA++;
+            prevIndex--;
+          }
+        }
+
+        const historyB = JSON.parse(rowB.cells[sortColumnIndex].dataset.colorHistory || '[]');
+        let correctionB = 0;
+        if (historyB.length > 1 && historyB[historyB.length - 1] == 'green') {
+          let prevIndex = historyB.length - 1 - 1;
+          while (historyA[prevIndex] !== 'undefined' 
+                && (historyA[prevIndex] == 'red' || historyA[prevIndex] == 'gray')
+          ) {
+            correctionB++;
+            prevIndex--;
+          }
+        }
+
+        if (document.getElementById("sortDir").value == "desc") {
+          return correctionA - correctionA; // Descending order
+        }
+        return correctionA - correctionA; // Ascending order
+      });  
+    }
 
     // Reorder rows in the table
     rows.forEach(row => tbody.appendChild(row));
