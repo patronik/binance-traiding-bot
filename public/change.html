@@ -352,8 +352,11 @@
       }      
 
       if (symbol == 'USDTUSDT') {
+        const usdtBal = parseFloat(balances.freeBalance);        
         document.getElementById(`usdt-bal`).textContent 
-          = trimAmount(parseFloat(balances.freeBalance), 2);
+          = Number.isInteger(usdtBal) 
+          ? usdtBal.toFixed(2) 
+          : trimAmount(usdtBal, 2);
       }
     });
   }
