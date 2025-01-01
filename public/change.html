@@ -13,7 +13,10 @@
       }
       th {
         background-color: #f2f2f2;
-      }     
+      }  
+      #renderTable {
+        margin-bottom: 100px;
+      }   
       #admin-panel {
         padding: 10px;
         justify-content: center;
@@ -30,10 +33,9 @@
         padding: 8px;
         border-radius: 4px;
         font-size: 0.9rem;
-        display: none;       /* hidden by default */
-        z-index: 9999;       /* on top of everything */
+        display: none; /* hidden by default */
+        z-index: 9999; /* on top of everything */
       }
-
     </style>
     <script type="text/javascript" src="binance.js" defer></script>
   </head>
@@ -154,12 +156,12 @@
             <td id="real-o-bal-usdt-${symbol}"></td>            
             <td><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></td>
             <td><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></td>
-            <td data-colorHistory="" id="real-change-${60}-${symbol}">--</td>
-            <td data-colorHistory="" id="real-change-${60 * 3}-${symbol}">--</td>
-            <td data-colorHistory="" id="real-change-${60 * 5}-${symbol}">--</td>
-            <td data-colorHistory="" id="real-change-${60 * 15}-${symbol}">--</td>
-            <td data-colorHistory="" id="real-change-${60 * 30}-${symbol}">--</td>
-            <td data-colorHistory="" id="real-change-${60 * 60}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60 * 3}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60 * 5}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60 * 15}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60 * 30}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60 * 60}-${symbol}">--</td>
           </tr>
         `).join('')}
       </tbody>
@@ -174,7 +176,7 @@
   // Function to show the tooltip with some HTML content
   const showTooltip = (htmlContent, x, y) => {
     tooltip.innerHTML = htmlContent;
-    tooltip.style.left = x + 15 + "px";  // add a small offset
+    tooltip.style.left = x - 150 + "px";  // add an offset
     tooltip.style.top = y + 15 + "px";
     tooltip.style.display = "block";
   };
@@ -263,16 +265,31 @@
       let colorHistory = cell.dataset.colorHistory
       ? JSON.parse(cell.dataset.colorHistory)
       : [];
+
       colorHistory.push(newColor);
+      
       if (colorHistory.length > 30) {
         colorHistory.shift();
       }
+
+      // Update correction value
+      cell.dataset.correction = 0;
+      if (colorHistory.length > 1 && colorHistory[colorHistory.length - 1] == 'green') {
+        let prevIndex = colorHistory.length - 1 - 1;
+        while (colorHistory[prevIndex] !== 'undefined' 
+              && (colorHistory[prevIndex] == 'red' || colorHistory[prevIndex] == 'gray')
+        ) {
+          cell.dataset.correction++;
+          prevIndex--;
+        }
+      }
+
       cell.dataset.colorHistory = JSON.stringify(colorHistory);  
     } 
     cell.style.backgroundColor = newColor;
   };
 
-  const sortTable = (needUpdate) => {
+  const prepareTable = (needUpdate) => {
     const table = document.getElementById("priceTable");
     const tbody = table.querySelector("tbody");
     const rows = Array.from(tbody.rows);
@@ -317,34 +334,13 @@
       );  
     } else if (sortAlgo == "correction") {
         rows.sort((rowA, rowB) => {
-        const historyA = JSON.parse(rowA.cells[sortColumnIndex].dataset.colorHistory || '[]');
-        let correctionA = 0;
-        if (historyA.length > 1 && historyA[historyA.length - 1] == 'green') {
-          let prevIndex = historyA.length - 1 - 1;
-          while (historyA[prevIndex] !== 'undefined' 
-                && (historyA[prevIndex] == 'red' || historyA[prevIndex] == 'gray')
-          ) {
-            correctionA++;
-            prevIndex--;
-          }
-        }
-
-        const historyB = JSON.parse(rowB.cells[sortColumnIndex].dataset.colorHistory || '[]');
-        let correctionB = 0;
-        if (historyB.length > 1 && historyB[historyB.length - 1] == 'green') {
-          let prevIndex = historyB.length - 1 - 1;
-          while (historyA[prevIndex] !== 'undefined' 
-                && (historyA[prevIndex] == 'red' || historyA[prevIndex] == 'gray')
-          ) {
-            correctionB++;
-            prevIndex--;
-          }
-        }
+        let correctionA = rowA.cells[sortColumnIndex].dataset.correction || 0;
+        let correctionB = rowB.cells[sortColumnIndex].dataset.correction || 0;
 
         if (document.getElementById("sortDir").value == "desc") {
-          return correctionA - correctionA; // Descending order
+          return correctionB - correctionA; // Descending order
         }
-        return correctionA - correctionA; // Ascending order
+        return correctionA - correctionB; // Ascending order
       });  
     }
 
@@ -437,7 +433,7 @@
             needUpdate = true;
           }
 
-          sortTable(needUpdate);  
+          prepareTable(needUpdate);  
           updateData(needUpdate);          
         }
         await updateBalances();
