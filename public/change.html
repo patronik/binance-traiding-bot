@@ -71,12 +71,14 @@
         <option value="3">Free bal. USDT</option>
         <option value="5">Order bal.</option>
         <option value="6">Order bal. USDT</option>
-        <option value="9" selected>(1 minute %)</option>
-        <option value="10">(3 minutes %)</option>
-        <option value="11">(5 minutes %)</option>
-        <option value="12">(15 minutes %)</option>
-        <option value="13">(30 minutes %)</option>
-        <option value="14">(60 minutes %)</option>
+        <option value="9" selected>(30 s. %)</option>
+        <option value="10" selected>(1 m. %)</option>
+        <option value="11">(3 m. %)</option>
+        <option value="12">(5 m. %)</option>
+        <option value="13">(15 m. %)</option>
+        <option value="14">(30 m. %)</option>
+        <option value="15">(1 h. %)</option>
+        <option value="16">(3 h. %)</option>
       </select>
     </label>
     <label>
@@ -142,12 +144,14 @@
           <th data-sort="number">Order bal. USDT</th>       
           <th>Buy percent of USDT.</th>
           <th>Buy for fixed USDT.</th>
-          <th data-sort="number">Change (1 minute %)</th>
-          <th data-sort="number">Change (3 minutes %)</th>
-          <th data-sort="number">Change (5 minutes %)</th>
-          <th data-sort="number">Change (15 minutes%)</th>
-          <th data-sort="number">Change (30 minutes%)</th>
-          <th data-sort="number">Change (60 minutes%)</th>
+          <th data-sort="number">Change (30 s. %)</th>
+          <th data-sort="number">Change (1 m. %)</th>
+          <th data-sort="number">Change (3 m. %)</th>
+          <th data-sort="number">Change (5 m. %)</th>
+          <th data-sort="number">Change (15 m. %)</th>
+          <th data-sort="number">Change (30 m. %)</th>
+          <th data-sort="number">Change (1 h. %)</th>
+          <th data-sort="number">Change (3 h. %)</th>
         </tr>
       </thead>
       <tbody>
@@ -162,12 +166,14 @@
             <td id="real-o-bal-usdt-${symbol}"></td>            
             <td><input type="button" value="Buy for %" onclick="buyUSDTPercent('${symbol}');" /></td>
             <td><input type="button" value="Buy for fixed." onclick="buyForFixedUSDT('${symbol}');" /></td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${30}-${symbol}">--</td>
             <td data-colorHistory="" data-correction="0" id="real-change-${60}-${symbol}">--</td>
             <td data-colorHistory="" data-correction="0" id="real-change-${60 * 3}-${symbol}">--</td>
             <td data-colorHistory="" data-correction="0" id="real-change-${60 * 5}-${symbol}">--</td>
             <td data-colorHistory="" data-correction="0" id="real-change-${60 * 15}-${symbol}">--</td>
             <td data-colorHistory="" data-correction="0" id="real-change-${60 * 30}-${symbol}">--</td>
             <td data-colorHistory="" data-correction="0" id="real-change-${60 * 60}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60 * 60 * 3}-${symbol}">--</td>
           </tr>
         `).join('')}
       </tbody>
@@ -447,17 +453,20 @@
           // Update the table
           document.getElementById(`real-price-${symbol}`).textContent = currentPrice;
 
+          updateChange(symbol, 30);
           updateChange(symbol, 60);
           updateChange(symbol, 60 * 3);
           updateChange(symbol, 60 * 5);
           updateChange(symbol, 60 * 15);
           updateChange(symbol, 60 * 30);
           updateChange(symbol, 60 * 60);
+          updateChange(symbol, 60 * 60 * 3);
 
-          if (priceHistory[symbol].length >= 60 * 60) {
+          if (priceHistory[symbol].length >= 60 * 60 * 3) {
             priceHistory[symbol].shift();
           }        
         }); 
+        
         if (tickCount >= 60) {
           let timestamp = Math.round((new Date()).getTime() / 1000);
           let updateRate = parseInt(document.getElementById("updateRate").value, 10);
