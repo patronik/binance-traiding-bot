@@ -295,30 +295,8 @@
     cell.style.backgroundColor = newColor;
   };
 
-  const filterRows = (rows) => {
-     const correctionOnly = document.getElementById("correctionOnly").checked;   
-     const correctionThd = document.getElementById("correctionThd").value;  
-     const sortColumnIndex = document.getElementById("sortBy").value; 
-     rows.forEach(row => {
-        if (correctionOnly) {
-          let correction = 0;
-          if (row.cells[sortColumnIndex].dataset.correction != 'undefined') {
-            correction = row.cells[sortColumnIndex].dataset.correction;
-          }
-          row.hidden = (correction < correctionThd);
-        } else {
-          row.hidden = false;
-        }
-    });
-  };
-
-  const prepareTable = (needUpdate) => {
-    const table = document.getElementById("priceTable");
-    const tbody = table.querySelector("tbody");
-    const rows = Array.from(tbody.rows);
-    const sortColumnIndex = document.getElementById("sortBy").value;
-
-    // Analyze and style cells before sorting
+  const paintRows = (rows, needUpdate) => {
+     // Analyze and style cells before sorting
     rows.forEach(row => {
       for (let i = 9; i <= 20; i++) {
         if(typeof row.cells[i] === 'undefined') {
@@ -342,8 +320,10 @@
         }
       }
     });
+  };
 
-    // Sort the rows
+  const sortRows = (rows) => {
+    const sortColumnIndex = document.getElementById("sortBy").value;
     const sortAlgo = document.getElementById("sortAlgo").value;
     if (sortAlgo == "value") {
       rows.sort((rowA, rowB) => {
@@ -366,8 +346,35 @@
         return correctionA - correctionB; // Ascending order
       });  
     }
+  };
 
-    // Filter rows
+  const filterRows = (rows) => {
+     const correctionOnly = document.getElementById("correctionOnly").checked;   
+     const correctionThd = document.getElementById("correctionThd").value;  
+     const sortColumnIndex = document.getElementById("sortBy").value; 
+     rows.forEach(row => {
+        if (correctionOnly) {
+          let correction = 0;
+          if (row.cells[sortColumnIndex].dataset.correction != 'undefined') {
+            correction = row.cells[sortColumnIndex].dataset.correction;
+          }
+          row.hidden = (correction < correctionThd);
+        } else {
+          row.hidden = false;
+        }
+    });
+  };  
+
+  const prepareTable = (needUpdate) => {
+    const table = document.getElementById("priceTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.rows);
+    
+    // Paint the rows
+    paintRows(rows, needUpdate);
+    // Sort the rows
+    sortRows(rows);
+    // Filter the rows
     filterRows(rows);
 
     // Reorder rows in the table
