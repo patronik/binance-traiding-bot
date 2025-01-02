@@ -297,10 +297,15 @@
 
   const filterRows = (rows) => {
      const correctionOnly = document.getElementById("correctionOnly").checked;   
-     const correctionThd = document.getElementById("correctionThd").value;   
+     const correctionThd = document.getElementById("correctionThd").value;  
+     const sortColumnIndex = document.getElementById("sortBy").value; 
      rows.forEach(row => {
         if (correctionOnly) {
-          row.hidden = (row.cells[9].dataset.correction < correctionThd);
+          let correction = 0;
+          if (row.cells[sortColumnIndex].dataset.correction != 'undefined') {
+            correction = row.cells[sortColumnIndex].dataset.correction;
+          }
+          row.hidden = (correction < correctionThd);
         } else {
           row.hidden = false;
         }
