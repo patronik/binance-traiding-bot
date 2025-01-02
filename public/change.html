@@ -45,7 +45,7 @@
       Fee <input type="number" id="binanceFee" style="width: 40px;" step="0.01" max="1" min="0.1" value="0.1">%        
     </label>      
     <label>
-      Buy for <input type="number" id="USDTPercent" style="width: 50px;" step="10" max="100" min="10" value="100">% of USDT        
+      Buy for <input type="number" id="USDTPercent" style="width: 40px;" step="10" max="100" min="10" value="100">% of USDT        
     </label>
     <label>
       Buy for fixed <input type="number" id="fixedUSDT" style="width: 50px;" value="1000"> USDT       
@@ -90,6 +90,9 @@
         <option value="desc">DESC</option>
         <option value="asc">ASC</option>
       </select>
+    </label>
+    <label>
+      Correction thd <input type="number" id="correctionThd" style="width: 25px;" step="1" min="1"  value="1">       
     </label>
     <label>
       Correction only <input type="checkbox" id="correctionOnly"/>
@@ -293,12 +296,11 @@
   };
 
   const filterRows = (rows) => {
-     const correctionOnly = document.getElementById("correctionOnly").checked;     
+     const correctionOnly = document.getElementById("correctionOnly").checked;   
+     const correctionThd = document.getElementById("correctionThd").value;   
      rows.forEach(row => {
         if (correctionOnly) {
-          if (row.cells[9].dataset.correction == 0) {
-            row.hidden = true;
-          } 
+          row.hidden = (row.cells[9].dataset.correction < correctionThd);
         } else {
           row.hidden = false;
         }
