@@ -92,6 +92,9 @@
       </select>
     </label>
     <label>
+      Correction only <input type="checkbox" id="correctionOnly"/>
+    </label>
+    <label>
       <button id="clear-history">Clear history</button>
     </label>
   </div>  
@@ -289,6 +292,19 @@
     cell.style.backgroundColor = newColor;
   };
 
+  const filterRows = (rows) => {
+     const correctionOnly = document.getElementById("correctionOnly").checked;     
+     rows.forEach(row => {
+        if (correctionOnly) {
+          if (row.cells[9].dataset.correction == 0) {
+            row.hidden = true;
+          } 
+        } else {
+          row.hidden = false;
+        }
+    });
+  };
+
   const prepareTable = (needUpdate) => {
     const table = document.getElementById("priceTable");
     const tbody = table.querySelector("tbody");
@@ -305,16 +321,16 @@
         if (cell) {
             const value = parseFloat(cell.textContent.trim());
             if (!isNaN(value)) {
-                if (value > 0) {
-                    updateCellColor(cell, "green", needUpdate);
-                } else if (value < 0) {
-                    updateCellColor(cell, "red", needUpdate);
-                } else {
-                    updateCellColor(cell, "grey", needUpdate);
-                }
+              if (value > 0) {
+                  updateCellColor(cell, "green", needUpdate);
+              } else if (value < 0) {
+                  updateCellColor(cell, "red", needUpdate);
+              } else {
+                  updateCellColor(cell, "grey", needUpdate);
+              }
             } else {
-                // Clear background for non-numeric values
-                cell.style.backgroundColor = ""; 
+              // Clear background for non-numeric values
+              cell.style.backgroundColor = ""; 
             }
         }
       }
@@ -343,6 +359,9 @@
         return correctionA - correctionB; // Ascending order
       });  
     }
+
+    // Filter rows
+    filterRows(rows);
 
     // Reorder rows in the table
     rows.forEach(row => tbody.appendChild(row));
