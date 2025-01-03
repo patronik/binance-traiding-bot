@@ -497,4 +497,12 @@
 
 runMonitoring();
 
+document.body.addEventListener("mousemove", function () {
+  const audio = new Audio();
+  audio.src = 'sound.wav'; 
+  audio.volume = 0.0;
+  audio.loop = true;
+  audio.play();
+})
+
 </script>
