@@ -3,6 +3,7 @@
   <head>
     <style>
       table {
+        font-size: 0.8rem;
         border-collapse: collapse;
         width: 100%;
       }
@@ -66,19 +67,21 @@
     </label> 
     <label>
       Sort by <select id="sortBy">
-        <option value="1">Price (USDT)</option>
-        <option value="2">Free bal.</option>
-        <option value="3">Free bal. USDT</option>
-        <option value="5">Order bal.</option>
-        <option value="6">Order bal. USDT</option>
-        <option value="9" selected>(30 s. %)</option>
-        <option value="10" selected>(1 m. %)</option>
-        <option value="11">(3 m. %)</option>
-        <option value="12">(5 m. %)</option>
-        <option value="13">(15 m. %)</option>
-        <option value="14">(30 m. %)</option>
-        <option value="15">(1 h. %)</option>
-        <option value="16">(3 h. %)</option>
+        <option value="1">Price $</option>
+        <option value="2">F. b.</option>
+        <option value="3">F. b. $</option>
+        <option value="5">O. b.</option>
+        <option value="6">O. b. $</option>
+        <option value="9" selected>30 s. %</option>
+        <option value="10" selected>1 m. %</option>
+        <option value="11">3 m. %</option>
+        <option value="12">5 m. %</option>
+        <option value="13">15 m. %</option>
+        <option value="14">30 m. %</option>
+        <option value="15">1 h. %</option>
+        <option value="16">3 h. %</option>
+        <option value="17">12 h. %</option>
+        <option value="18">24 h. %</option>
       </select>
     </label>
     <label>
@@ -136,22 +139,24 @@
       <thead>
         <tr>
           <th>Symbol</th>
-          <th data-sort="number">Price (USDT)</th>
-          <th data-sort="number">Free bal.</th>
-          <th data-sort="number">Free bal. USDT</th>
+          <th data-sort="number">Price $</th>
+          <th data-sort="number">F. b.</th>
+          <th data-sort="number">F. b. $</th>
           <th>Sell all.</th>
-          <th data-sort="number">Order bal.</th>    
-          <th data-sort="number">Order bal. USDT</th>       
-          <th>Buy percent of USDT.</th>
-          <th>Buy for fixed USDT.</th>
-          <th data-sort="number">Change (30 s. %)</th>
-          <th data-sort="number">Change (1 m. %)</th>
-          <th data-sort="number">Change (3 m. %)</th>
-          <th data-sort="number">Change (5 m. %)</th>
-          <th data-sort="number">Change (15 m. %)</th>
-          <th data-sort="number">Change (30 m. %)</th>
-          <th data-sort="number">Change (1 h. %)</th>
-          <th data-sort="number">Change (3 h. %)</th>
+          <th data-sort="number">O. b.</th>    
+          <th data-sort="number">O. b. $</th>       
+          <th>Buy % of $.</th>
+          <th>Buy for $.</th>
+          <th data-sort="number">30 s. %</th>
+          <th data-sort="number">1 m. %</th>
+          <th data-sort="number">3 m. %</th>
+          <th data-sort="number">5 m. %</th>
+          <th data-sort="number">15 m. %</th>
+          <th data-sort="number">30 m. %</th>
+          <th data-sort="number">1 h. %</th>
+          <th data-sort="number">3 h. %</th>
+          <th data-sort="number">12 h. %</th>
+          <th data-sort="number">24 h. %</th>
         </tr>
       </thead>
       <tbody>
@@ -174,6 +179,8 @@
             <td data-colorHistory="" data-correction="0" id="real-change-${60 * 30}-${symbol}">--</td>
             <td data-colorHistory="" data-correction="0" id="real-change-${60 * 60}-${symbol}">--</td>
             <td data-colorHistory="" data-correction="0" id="real-change-${60 * 60 * 3}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60 * 60 * 12}-${symbol}">--</td>
+            <td data-colorHistory="" data-correction="0" id="real-change-${60 * 60 * 24}-${symbol}">--</td>
           </tr>
         `).join('')}
       </tbody>
@@ -461,8 +468,10 @@
           updateChange(symbol, 60 * 30);
           updateChange(symbol, 60 * 60);
           updateChange(symbol, 60 * 60 * 3);
+          updateChange(symbol, 60 * 60 * 12);
+          updateChange(symbol, 60 * 60 * 24);          
 
-          if (priceHistory[symbol].length >= 60 * 60 * 3) {
+          if (priceHistory[symbol].length >= 60 * 60 * 24) {
             priceHistory[symbol].shift();
           }        
         }); 
