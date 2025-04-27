@@ -231,6 +231,7 @@ app.get('/change-symbols', async (req, res) => {
     'BNBUSDT',
     'DOGEUSDT',
     // 'USDCUSDT',
+    'TRUMPUSDT',
     'ADAUSDT',
     'TRXUSDT',
     'AVAXUSDT',

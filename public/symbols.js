@@ -5,6 +5,7 @@ const symbols = [
     'BCCUSDT',
     'NEOUSDT',
     'LTCUSDT',
+    'TRUMPUSDT',
     'QTUMUSDT',
     'ADAUSDT',
     'XRPUSDT',
