@@ -424,19 +424,17 @@
           rows[i].dataset.place = currentTopState.place;
           rows[i].dataset.times = currentTopState.times;
 
-          if (rows[i].dataset.times < 10) {
+          if (rows[i].dataset.times < 5) {
             rows[i].dataset.new = 1;
           } else {
             rows[i].dataset.new = 0;
           }
-
-          } else {
+        } else {
             rows[i].dataset.place = 0;
             rows[i].dataset.times = 0;
             rows[i].dataset.new = 0;
-          }
-
-          topSymbos.set(rows[i].dataset.symbol, currentTopState);
+        }
+        topSymbos.set(rows[i].dataset.symbol, currentTopState);
       }
     }
   };  
