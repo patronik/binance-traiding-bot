@@ -36,6 +36,22 @@
         display: none; /* hidden by default */
         z-index: 9999; /* on top of everything */
       }
+      
+      tr[data-place="1"][data-new="0"] td:nth-of-type(-n+9),
+      tr[data-place="2"][data-new="0"] td:nth-of-type(-n+9),
+      tr[data-place="3"][data-new="0"] td:nth-of-type(-n+9),
+      tr[data-place="4"][data-new="0"] td:nth-of-type(-n+9),
+      tr[data-place="5"][data-new="0"] td:nth-of-type(-n+9) {
+        background-color: rgb(235, 132, 14);
+      }
+
+      tr[data-place="1"][data-new="1"] td:nth-of-type(-n+9),
+      tr[data-place="2"][data-new="1"] td:nth-of-type(-n+9),
+      tr[data-place="3"][data-new="1"] td:nth-of-type(-n+9),
+      tr[data-place="4"][data-new="1"] td:nth-of-type(-n+9),
+      tr[data-place="5"][data-new="1"] td:nth-of-type(-n+9) {
+        background-color: rgb(67, 190, 100);
+      }
     </style>
     <script type="text/javascript" src="binance.js" defer></script>
   </head>
@@ -117,13 +133,16 @@
 </html>
 <script>
   const runMonitoring = async () => {
-    const symbols = await (async () => { 
+  const symbols = await (async () => { 
       const response = await fetch('/change-symbols', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
       });
       return await response.json();
   })();
+
+  // Top 5 symbols
+  const topSymbos = new Map();
 
   // Define the symbols to fetch
   const apiUrl = `https://api.binance.com/api/v3/ticker/price`;
@@ -160,7 +179,7 @@
       </thead>
       <tbody>
         ${symbols.map(symbol => `
-          <tr>
+          <tr data-symbol="${symbol}" data-place="0" data-times="0" data-new="0">
             <td><a href="https://www.binance.com/uk-UA/trade/${symbol.replace('USDT', '_USDT')}?_from=markets&type=spot" target="_blank">${symbol}</a></td>
             <td id="real-price-${symbol}">--</td>
             <td id="real-f-bal-${symbol}"></td>
@@ -390,7 +409,36 @@
     filterRows(rows);
 
     // Reorder rows in the table
-    rows.forEach(row => tbody.appendChild(row));
+    for (let i = 0; i < rows.length; i++) {
+      tbody.appendChild(rows[i]); 
+      
+      if (needUpdate) {
+        let currentTopState = topSymbos.get(rows[i].dataset.symbol) || {place: 0, times: 0, new: 0};
+        if (i < 5) {
+          if (currentTopState.place == i + 1) {
+            currentTopState.times += 1;
+          } else {
+            currentTopState.place = i + 1;
+            currentTopState.times = 1;
+          }
+          rows[i].dataset.place = currentTopState.place;
+          rows[i].dataset.times = currentTopState.times;
+
+          if (rows[i].dataset.times < 10) {
+            rows[i].dataset.new = 1;
+          } else {
+            rows[i].dataset.new = 0;
+          }
+
+          } else {
+            rows[i].dataset.place = 0;
+            rows[i].dataset.times = 0;
+            rows[i].dataset.new = 0;
+          }
+
+          topSymbos.set(rows[i].dataset.symbol, currentTopState);
+      }
+    }
   };  
 
   function updateChange(symbol, seconds) {
