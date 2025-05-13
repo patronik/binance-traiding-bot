@@ -58,6 +58,9 @@
 <body>
   <div id="admin-panel"> 
     <label>
+      <button id="startAudio">Start Audio</button>
+    </label>
+    <label>
       Fee <input type="number" id="binanceFee" style="width: 40px;" step="0.01" max="1" min="0.1" value="0.1">%        
     </label>      
     <label>
@@ -543,12 +546,12 @@
 
 runMonitoring();
 
-document.body.addEventListener("mousemove", function () {
+document.getElementById("startAudio").addEventListener("click", async () => {
   const audio = new Audio();
   audio.src = 'sound.wav'; 
   audio.volume = 0.0;
   audio.loop = true;
   audio.play();
-})
+});
 
 </script>
